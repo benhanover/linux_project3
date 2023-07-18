@@ -22,12 +22,12 @@ int System::getAirportIndexByName(string& airportName)
     }
 }
 
-void System::regenerate_db()
+void System::fetchDB(vector<string> airportsIcaoCodes)
 {
-    vector<string> airportsNamesVector;
-    getAllAirportsNames(airportsNamesVector);
+    //vector<string> airportsNamesVector;
+    //getAllAirportsNames(airportsNamesVector);
     string airportNames = "";
-    for (auto& name:airportsNamesVector) 
+    for (auto& name : airportsIcaoCodes) 
         airportNames += name += " ";
 
     fs::path buildPath = fs::current_path();
@@ -47,7 +47,7 @@ void System::regenerate_db()
     system("chmod u+x flightScanner.sh");
 
     //delete previous DB
-    system((clean += airportNames).c_str());
+    system((clean += airportNames).c_str());  /////if it doesn't exist??
     deleteAll();
     //create data base
     system((flightScanner += airportNames).c_str());
@@ -61,6 +61,8 @@ void System::regenerate_db()
     paths.reserve(10);
     getAllPaths(paths);
     load_db(paths);
+    this->dbLoaded = true;   //if fetched DB and loaded to "airports" -> bool var will changed to know DB is loaded
+
 }
 
 void System::load_db(vector<string>& paths)

@@ -1,81 +1,78 @@
 #include "./missions.h"
 
-string printAllAircraftsFlights(System& airports, vector<string> aircraftsNames)
+string printAirportSchedule(System& airports, vector<string> airportsNames)
 {
     vector<string> missing_names;
     string res;
     bool allInDB = false;
-    int aircraftsNamesSize = aircraftsNames.size();
-    allInDB = checkIfAllAircraftsInDB(airports, missing_names, aircraftsNames);
+    int airportNamesSize = airportsNames.size();
+    allInDB = airports.checkIfAllInDbAndUpdateMissing(missing_names, airportsNames);
 
    if (!allInDB)
     {
         res =  "Not all ICOA code names inserted exist in current database.\n";
         res += "These names doesn't exist in the database:\n";
         for (int i = 0; i < missing_names.size(); i++)
-            {
-                res += missing_names[i] + ' ';
-            }
+            res += missing_names[i] + ' ';
         res += '\n';
     }
+
+    string curAirportName;
     
-    string curAircraft;
-    for(int i = 0; i < aircraftsNamesSize; i++)
+    for(int i = 0; i < airportNamesSize; i++)
     {
-       curAircraft = aircraftsNames[i];
-  
-        if (find(missing_names.begin(), missing_names.end(), curAircraft) != missing_names.end())
-            continue;      
-       else 
-        res += printSingleAircraftFlights(curAircraft,airports);
+        curAirportName = airportsNames[i]; 
+        bool airpotIsExist = airports.isAirportExist(curAirportName);
+        if(airpotIsExist)
+        {
+            res += "Printing schedule for " + curAirportName + ":\n";
+            res += printFullAirportSchedule(curAirportName,airports);
+            res += "\n";
+        }
     }
     return res;
 }
 
-bool checkIfAllAircraftsInDB(System& airports, vector<string>& missing_names, vector<string> codesRecievedVec)
+string printFullAirportSchedule(string& IcoaCode, System& airports)
 {
-    int numOfCodesRecieved = codesRecievedVec.size();
-
-    for (int i = 0; i < numOfCodesRecieved; i++)
-    {   
-        string aircraft = codesRecievedVec[i];
-        bool existInDB = airports.isAircraftInDB(aircraft);
-        if(!existInDB)
-            missing_names.push_back(aircraft);
-    }
-
-    if (missing_names.empty())
-        return true; //no missing names, all arguments in DB
-    else 
-        return false;
-}
-
-string printSingleAircraftFlights(string& icao24, System& airports)
-{
-    string aircraftName, res;
+    string res;
+    int index = airports.getAirportIndexByName(IcoaCode);
+    vector<FlightInfo*> combine;
     vector<SingleAirport*> airportsVector = airports.getAirportsVector();
 
-    res += "Printing schedule for " + icao24 + ":\n";
+    combine.reserve(airportsVector[index]->getArivals().size() + airportsVector[index]->getDepartures().size());
 
-    for(auto& airport: airportsVector)
+    for(auto& flightInfo: airportsVector[index]->getArivals())
+        combine.push_back(flightInfo);
+        
+    for(auto& flightInfo: airportsVector[index]->getDepartures())
+        combine.push_back(flightInfo);
+
+    sort(combine.begin(), combine.end(), compare2Flights);
+    for (auto& flightInfo: combine)
     {
-        for (auto& flightInfo: airport->getArivals())
-        {
-            if(flightInfo->getAircraftName() == icao24)
-            {
-                res += icao24 + " departed from  " + flightInfo->getEstDepartureAirport() + " at " + flightInfo->getFirstSeen() +  " arrived in " 
-                  + flightInfo->getEstArrivalAirport() + " at " + flightInfo->getLastSeen() + "\n";
-            }
-        }
-        for (auto& flightInfo: airport->getDepartures())
-        {
-            if(flightInfo->getAircraftName() == icao24)
-            {
-                res += flightInfo->getAircraftName() + " departed from  " + flightInfo->getEstDepartureAirport() + " at " + flightInfo->getFirstSeen() +  " arrived in " 
-                    + flightInfo->getEstArrivalAirport() + " at " + flightInfo->getLastSeen() + "\n";
-            }
-        }
+        if (flightInfo->getArvOrDpt() == 'a') 
+            res += "Flight #" + flightInfo->getCallsign() + " arriving from " + flightInfo->getEstDepartureAirport() + " at " + flightInfo->getLastSeen() + "\n";
+        else
+            res += "Flight #" + flightInfo->getCallsign() + " departing to " + flightInfo->getEstDepartureAirport() + " at " + flightInfo->getFirstSeen() + "\n";
     }
-    res += "\n";
     return res;
+}
+
+int compare2Flights(FlightInfo* f1, FlightInfo* f2)
+{
+    char f1ArvOrDpt = f1->getArvOrDpt();
+    char f2ArvOrDpt = f2->getArvOrDpt();
+
+    if (f1ArvOrDpt == 'a' && f2ArvOrDpt =='a')
+        return (stoi(f1->getLastSeen()) < stoi(f2->getLastSeen())); //comparing 2 arrivals
+
+    else if (f1ArvOrDpt == 'd' && f2ArvOrDpt =='d')
+        return (stoi(f1->getFirstSeen()) < stoi(f2->getFirstSeen())); //comparing 2 departures
+    
+    else if (f1ArvOrDpt == 'a' && f2ArvOrDpt =='d')
+        return (stoi(f1->getLastSeen()) < stoi(f2->getFirstSeen())); //comparing arrival(f1) and departure(f2)   
+    
+    else 
+        return (stoi(f1->getFirstSeen()) < stoi(f2->getLastSeen())); //comparing departure(f1) and arrival(f2)
 }

@@ -2,6 +2,7 @@
 
 System airports;
 pid_t pid; 
+bool dbLoaded = false;
 
 int main()
 {
@@ -52,10 +53,10 @@ void execute(System& airports)
 }
 void runChildProcess(int* parentToChild,int* childToParent, System& airports)
 {
-    vector<string> paths;
+    /* vector<string> paths;
     paths.reserve(10);
     airports.getAllPaths(paths);
-    airports.load_db(paths);
+    airports.load_db(paths); */
 
     close(parentToChild[WRITE_END]);  // Close unused write end of parent-to-child pipe
     close(childToParent[READ_END]);  // Close unused read end of child-to-parent pipe
@@ -69,7 +70,10 @@ void runChildProcess(int* parentToChild,int* childToParent, System& airports)
         if (bytesRead <= 0) // End of data
             break;
 
-        if(choice > 0 && choice < 4)
+        if (airports.)
+
+
+        if(choice >= 1 && choice <= 4)
         {
             bytesRead = read(parentToChild[READ_END], &vectorSize, sizeof(vectorSize));
             codeNames.clear();
@@ -88,7 +92,7 @@ void runChildProcess(int* parentToChild,int* childToParent, System& airports)
             }            
         }
         res = getDataAndSendToParent(choice,airports, codeNames);
-
+        
         int resSize = res.size() + 1;
         write(childToParent[WRITE_END], &resSize, sizeof(resSize));
         write(childToParent[WRITE_END], res.c_str(), resSize);
@@ -109,11 +113,11 @@ void runParentProcess(int* parentToChild,int* childToParent, pid_t pid, pid_t ch
         choice = getChoice();
         getInputForChoice(choice, codeNames);
 
-        if (choice != 6 && choice != 7)
+        if (choice != 6)
             write(parentToChild[WRITE_END], &choice, sizeof(choice));
         usleep(10);
 
-        if(choice > 0 && choice < 4)
+        if(choice >= 1 && choice <= 4)
         {
             vectorSize = codeNames.size();
             write(parentToChild[WRITE_END], &vectorSize, sizeof(vectorSize));
@@ -142,10 +146,8 @@ void runParentProcess(int* parentToChild,int* childToParent, pid_t pid, pid_t ch
             char buffer[1];
             read(childToParent[READ_END], buffer, sizeof(buffer));
         }
-        else if(choice == 6)
-            cout << "The child process ID is: " << childPID <<endl;
         
-        else if(choice == 7)
+        else if(choice == 6)
         {
             int killRes = kill(pid, SIGUSR1);
             break;
@@ -163,11 +165,13 @@ void getInputForChoice(int choice, vector<string>& codeNames)
 {
     switch(choice)
     {
-        case 1: getInputFromUser(codeNames, "Insert airports ICOA code names to print arrivals:");
+        case 1: getInputFromUser(codeNames, "Insert airports ICOA code names to fetch their data:");
         break;
-        case 2: getInputFromUser(codeNames, "Insert airports names to print the full airport schedule:");
+        case 2: getInputFromUser(codeNames, "Insert airports ICOA code names to print incoming flights:");
         break;
-        case 3: getInputFromUser(codeNames,"Please enter icao24 codes of aircrafts, in order to see their schedule.");
+        case 3: getInputFromUser(codeNames, "Insert airports ICOA code names to print their full flight schedule:");
+        break;
+        case 4: getInputFromUser(codeNames,"Please enter icao24 codes of aircrafts, in order to see their schedule.");
         break;
     }
 }
@@ -175,14 +179,13 @@ void getInputForChoice(int choice, vector<string>& codeNames)
 void printMenu()
 {
     cout << "*************************************" << endl;
-    cout << "1 - Fetch Airports incoming Flights." << endl;
-    cout << "2 - Fetch airports full flights schedule." << endl;
-    cout << "3 - Fetch aircraft full flights schedule." << endl;
-    cout << "4 - Update DB." << endl;
+    cout << "1 - Fetch airports data." << endl;
+    cout << "2 - Print airports incoming flights." << endl;
+    cout << "3 - Print airports full flight schedule." << endl;
+    cout << "4 - Print aircrafts full flight schedule." << endl;
     cout << "5 - Zip DB files." << endl;
-    cout << "6 - Get child process PID." << endl;
-    cout << "7 - Exit." << endl;
-    cout << "Please make your choice <1, 2, 3, 4, 5, 6, 7>:" << endl;
+    cout << "6 - Shutdown." << endl;
+    cout << "Please make your choice <1, 2, 3, 4, 5, 6>:" << endl;
 }
 
 int getChoice()
@@ -195,7 +198,7 @@ int getChoice()
     
     while(flag)
     {
-        if(choice > '0' && choice < '8')
+        if(choice > '0' && choice < '7')
             return choice - '0';
         else
         {   
@@ -214,13 +217,13 @@ string getDataAndSendToParent(int choice,System& airports, vector<string> codeNa
     string result;
     switch(choice)
     {
-        case 1: result = printAirportsArv(airports, codeNames);
+        case 1: fetchAirportsData(airports, codeNames);
         break;
-        case 2: result = printAirportSchedule(airports, codeNames);
+        case 2: result = printAirportsArv(airports, codeNames);
         break;
-        case 3: result = printAllAircraftsFlights(airports, codeNames);
+        case 3: result = printAirportSchedule(airports, codeNames);
         break;
-        case 4: refreshDataBase(airports);
+        case 4: result = printAllAircraftsFlights(airports, codeNames);
         break;
         case 5: zipDataBase(airports);
         break;
