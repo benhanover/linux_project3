@@ -21,7 +21,6 @@ class System
     vector<SingleAirport*> airportsVector;
     bool dbLoaded = false;  //if fetched DB and loaded to "airports" -> bool var will be changed to know DB is loaded
 
-
 public:
     System()
     {
@@ -59,6 +58,7 @@ public:
     bool isAirportExist(string airportName);
     int getAirportIndexByName(string& airportName);
     static string getPathType(string &path);
+    bool isDataBaseLoaded() { return this->dbLoaded;}
 };
 
 

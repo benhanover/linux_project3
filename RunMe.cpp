@@ -70,10 +70,13 @@ void runChildProcess(int* parentToChild,int* childToParent, System& airports)
         if (bytesRead <= 0) // End of data
             break;
 
-        if (airports.)
-
-
-        if(choice >= 1 && choice <= 4)
+        bool dbLoaded = airports.isDataBaseLoaded();
+        if ((choice >= 2 && choice <= 4) && dbLoaded == false) //there is no data available to execute choice 2/3/4
+        {
+            res = "Currently there is not any data in the program. Can not run choice no. " + choice + '\n';
+            res += "In order to get data, please choose option 1 and provide the desired ICAO codes.\n";
+        }
+        else if(choice >= 1 && choice <= 4)
         {
             bytesRead = read(parentToChild[READ_END], &vectorSize, sizeof(vectorSize));
             codeNames.clear();
@@ -91,7 +94,7 @@ void runChildProcess(int* parentToChild,int* childToParent, System& airports)
                 memset(buffer, 0, sizeof(buffer));
             }            
         }
-        res = getDataAndSendToParent(choice,airports, codeNames);
+        res = getDataAndSendToParent(choice,airports, codeNames); //
         
         int resSize = res.size() + 1;
         write(childToParent[WRITE_END], &resSize, sizeof(resSize));
