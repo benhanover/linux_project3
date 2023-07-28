@@ -19,7 +19,7 @@ class FlightInfo;
 class System
 {
     vector<SingleAirport*> airportsVector;
-    bool dbLoaded = false;  //if fetched DB and loaded to "airports" -> bool var will be changed to know DB is loaded
+    bool dbLoaded = false;  //indicates if there is database and it was loaded to "airports"
 
 public:
     System()
@@ -50,8 +50,8 @@ public:
     void getAllPaths(vector<string> &paths);
     void addFileToZip(zip_t *archive, const std::filesystem::path &filePath, const std::filesystem::path &baseDirectory);
     void zipDirectory(const std::string &directoryPath, const std::string &zipFilePath);
-    void fetchDB(vector<string> airportsIcaoCodes);
-    void load_db(vector<string> &paths);
+    bool fetchDB(vector<string> airportsIcaoCodes);
+    void load_db();
     bool checkIfAllInDB(vector<string> &paths, vector<string> &missing_names, int numOfCodesRecieved, vector<string> codesRecievedArr);
     bool checkIfAllInDbAndUpdateMissing(vector<string> &missing_names, vector<string> codesRecievedArr);
     bool isAircraftInDB(string code);
@@ -61,8 +61,8 @@ public:
     bool isDataBaseLoaded() { return this->dbLoaded;}
 };
 
-
-class SingleAirport : public System
+class FlightInfo;
+class SingleAirport /*: public System*/
 {
 private:
     string icaoCode;
@@ -104,7 +104,7 @@ public:
 
 };
 
-class FlightInfo : public SingleAirport
+class FlightInfo /*: public SingleAirport*/
 {
     char arvOrDpt;
     int firstSeen;

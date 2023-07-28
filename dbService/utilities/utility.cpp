@@ -22,8 +22,9 @@ int System::getAirportIndexByName(string& airportName)
     }
 }
 
-void System::fetchDB(vector<string> airportsIcaoCodes)
+bool System::fetchDB(vector<string> airportsIcaoCodes)
 {
+    bool fetchedAll = false;
     //vector<string> airportsNamesVector;
     //getAllAirportsNames(airportsNamesVector);
     string airportNames = "";
@@ -51,22 +52,24 @@ void System::fetchDB(vector<string> airportsIcaoCodes)
     deleteAll();
     //create data base
     system((flightScanner += airportNames).c_str());
-
     
     if (chdir(buildPath.c_str()) != 0) {
         std::cout << "Failed to change directory.\n";
     }
     
+    load_db();
+    
+    if (fetchedAll)
+        return true;
+    else
+        return false;
+}
+
+void System::load_db()
+{
     vector<string> paths;
     paths.reserve(10);
     getAllPaths(paths);
-    load_db(paths);
-    this->dbLoaded = true;   //if fetched DB and loaded to "airports" -> bool var will changed to know DB is loaded
-
-}
-
-void System::load_db(vector<string>& paths)
-{
     //for each airport there are 2 paths (apt, dpt)
     int numberOfAirports = paths.size() / 2;
 
@@ -80,6 +83,8 @@ void System::load_db(vector<string>& paths)
 
         airportsVector.push_back(currentAirport);
     }
+
+    this->dbLoaded = true;   //indicates if there is database and it was loaded to "airports"
 }
 
 vector<FlightInfo*> System::getFlightsByCallsign(string& callsign)
@@ -114,7 +119,7 @@ void SingleAirport::updateAirportDataFlights(string& path)
 {
     string currentLine;
     //Apt / Dpt
-    string pathType = getPathType(path);
+    string pathType = System::getPathType(path);
     ifstream currentFile(path);
 
     if (!currentFile.is_open())
@@ -224,13 +229,11 @@ string System::getPathType(string& path)
     return pathType;
 }
 
-void System::getAllAirportsNames(vector<string>& airportsNamesVector) { 
-    
-    
+void System::getAllAirportsNames(vector<string>& airportsNamesVector)
+{ 
     for (auto& airport: airportsVector)
        airportsNamesVector.push_back(airport->getIcaoCode());
 }
-
 
 bool System::checkIfAllInDbAndUpdateMissing(vector<string> &missing_names, vector<string> codesRecievedArr)
 {
@@ -246,16 +249,17 @@ bool System::checkIfAllInDbAndUpdateMissing(vector<string> &missing_names, vecto
     return flag;
 }
 
-
 bool System::isAircraftInDB(string code)
 {
     for (auto airport : airportsVector)
     {
         vector<FlightInfo*> arrivals = airport->getArivals();
         vector<FlightInfo*> departures = airport->getDepartures();
+        
         for (auto flightInfo : arrivals)
             if (flightInfo->getIcao24() == code)   
                 return true;
+        
         for (auto flightInfo : departures)
             if (flightInfo->getIcao24() == code)   
                 return true;
@@ -263,6 +267,7 @@ bool System::isAircraftInDB(string code)
 
     return false;
 }
+
 bool System::isAirportExist(string airportName)
 {
     for (auto& airport: airportsVector)
@@ -270,7 +275,6 @@ bool System::isAirportExist(string airportName)
             return true;
     return false;
 }
-
 
 void System::zipDirectory(const std::string& directoryPath, const std::string& zipFilePath)
 {

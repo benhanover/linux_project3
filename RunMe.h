@@ -10,8 +10,8 @@
 
 void runChildProcess(int* parentToChild,int* childToParent, System& airports);
 void runParentProcess(int* parentToChild,int* childToParent, pid_t pid, pid_t childPID);
-void handleSIGINT(int signalNumber);
-void handleSIGUSR1(int signalNumber);
+//void handleSIGINT(int signalNumber);
+//void handleSIGUSR1(int signalNumber);
 void printMenu();
 void execute(System& airports);
 void executeChoice(int choice,System& airports);

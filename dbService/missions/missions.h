@@ -3,12 +3,8 @@
 #include <sstream>
 #include <sys/wait.h>
 
-//--------------------------functions------------------------------
-void getInputFromUser(vector<string>& words, string message);
-
-
 //--------------------------mission 1------------------------------
-void fetchAirportsData(System& airports, vector<string> airportsCodeNames);
+bool fetchAirportsData(System& airports, vector<string> airportsCodeNames);
 
 
 //--------------------------mission 2------------------------------

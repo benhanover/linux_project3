@@ -51,6 +51,8 @@ void execute(System& airports)
         runParentProcess(parentToChild, childToParent, pid, childPID);
     }
 }
+
+
 void runChildProcess(int* parentToChild,int* childToParent, System& airports)
 {
     /* vector<string> paths;
@@ -323,4 +325,79 @@ void handleSIGUSR1(int signalNumber)
 {
     cout << "from child received SIGUSR1" << endl;
     gracefulExit(airports);
+}
+
+void unzipDB(const string& zipFilePath, const string& destinationPath)
+{
+    zip_t *archive = zip_open(zipFilePath.c_str(), ZIP_RDONLY, nullptr);
+    if (archive == nullptr)
+    {
+        cerr << "Failed to open the ZIP file: " << zip_strerror(archive) << endl;
+        return;
+    }
+
+    filesystem::path absDestinationPath = filesystem::absolute(destinationPath);
+
+    // Create the destination directory manually
+    filesystem::create_directory(absDestinationPath);
+
+
+    int numEntries = zip_get_num_entries(archive, ZIP_FL_UNCHANGED);
+    for (int i = 0; i < numEntries; ++i)
+    {
+        zip_stat_t entryStats;
+        if (zip_stat_index(archive, i, ZIP_FL_UNCHANGED, &entryStats) != 0)
+        {
+            cerr << "Failed to retrieve the ZIP entry information at index " << i << endl;
+            continue;
+        }
+
+        string entryName = entryStats.name;
+        filesystem::path entryPath = absDestinationPath / entryName;
+
+        if (entryStats.name[strlen(entryStats.name) - 1] == '/')
+        {
+            // Entry is a directory
+            filesystem::create_directories(entryPath);
+        }
+        else
+        {
+            // Entry is a file
+            zip_file_t *file = zip_fopen_index(archive, i, ZIP_FL_UNCHANGED);
+            if (file == nullptr)
+            {
+                cerr << "Failed to open the ZIP file entry: " << entryName << endl;
+                continue;
+            }
+
+            ofstream outputFile(entryPath.string(), ios::binary);
+            if (!outputFile)
+            {
+                cerr << "Failed to create the output file: " << entryPath << endl;
+                continue;
+            }
+
+            char buffer[1024];
+            zip_int64_t bytesRead;
+            while ((bytesRead = zip_fread(file, buffer, sizeof(buffer))) > 0)
+            {
+                outputFile.write(buffer, bytesRead);
+            }
+
+            outputFile.close();
+            zip_fclose(file);
+        }
+    }
+
+    //making the scripts executable
+    string flightScannerScriptPath = destinationPath + "/flightScanner.sh";
+    string command = "chmod +x " + flightScannerScriptPath;
+    system(command.c_str());
+    
+    string cleanScriptPath = destinationPath + "/clean.sh";
+    command = "chmod +x " + cleanScriptPath;
+    system(command.c_str());
+
+    zip_close(archive);
+    cout << "Successfully unzipped the directory." << endl;
 }
