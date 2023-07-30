@@ -3,8 +3,6 @@
 today=$(date +%s)
 yesterday=$(date +%s --date="yesterday")
 
-success=0
-
 
 for ICAO in $@; do
     
@@ -12,7 +10,6 @@ for ICAO in $@; do
 
     if [ "$airportInfo" == "" ];  then
         echo "$ICAO is invalid ICAO code or does not exist"
-        success=1   # Set success to 1 indicating an error occurred 
     else
         echo "creating directory for $ICAO"
         mkdir "$ICAO"
@@ -32,5 +29,3 @@ for ICAO in $@; do
         cd ../
     fi
 done
-
-exit $success   # Return the value of 'success' as the exit code

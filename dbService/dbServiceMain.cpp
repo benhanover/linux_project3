@@ -2,7 +2,10 @@
 
 int main()
 {
-    unzipDB();
+    bool zipContainedData;
+    unzipDB(zipContainedData);
+
+    cout << "in dbService" << endl;
 
     string namedPipeFlightsServiceToDbService, namedPipeDbServiceToFlightsService;
     createNamedPipes(namedPipeFlightsServiceToDbService,namedPipeDbServiceToFlightsService);
@@ -10,7 +13,7 @@ int main()
     int FileDescriptorFsToDb = open(namedPipeFlightsServiceToDbService.c_str(), O_RDWR);
     int FileDescriptorDbToFs = open(namedPipeDbServiceToFlightsService.c_str(), O_RDWR);
 
-    runDbService(FileDescriptorFsToDb, FileDescriptorDbToFs);
+    runDbService(FileDescriptorFsToDb, FileDescriptorDbToFs, zipContainedData);
 
     closeAndUnlinkNamedPipes(FileDescriptorFsToDb, FileDescriptorDbToFs, 
         namedPipeFlightsServiceToDbService, namedPipeDbServiceToFlightsService);

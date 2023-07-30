@@ -1,0 +1,3 @@
+/home/vboxuser/ProjectLinux3/linux_project3/flightsService/build/CMakeFiles/flightsService.dir
+/home/vboxuser/ProjectLinux3/linux_project3/flightsService/build/CMakeFiles/edit_cache.dir
+/home/vboxuser/ProjectLinux3/linux_project3/flightsService/build/CMakeFiles/rebuild_cache.dir

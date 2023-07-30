@@ -26,12 +26,13 @@ using namespace std;
 namespace fs = std::filesystem;
 
 
-void runDbService(int FileDescriptorFsToDb,int FileDescriptorDbToFs);
+void runDbService(int FileDescriptorFsToDb,int FileDescriptorDbToFs, bool zipContainedData);
 int readChoiceFromFlightsService(int FileDescriptorFsToDb);
 void readUserInputFromFlightsService(int FileDescriptorFsToDb,vector<string>& codeNames);
 void writeOutputToFlightsService(int FileDescriptorDbToFs, string outputStr);
 string getDataForParent(int choice,System& airports, vector<string> codeNames);
-void unzipDB(/*const string& zipFilePath, const string& destinationPath*/);
+void unzipDB(bool& zipContainedData);
+bool containsDataDirectories(zip_t* archive);
 
 void createNamedPipes(string& namedPipeFlightsServiceToDbService, string& namedPipeDbServiceToFlightsService);
 void closeAndUnlinkNamedPipes(int FileDescriptorFsToDb, int FileDescriptorDbToFs, 

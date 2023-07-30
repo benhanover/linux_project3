@@ -12,12 +12,15 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBZIP REQUIRED IMPORTED_TARGET libzip)
 
 # Set your source files
-set(MAIN RunMe.cpp)
+set(MAIN dbServiceMain.cpp)
 file(GLOB MISSIONS CONFIGURE_DEPENDS "./missions/*.cpp")
 
 # Include the utilities directory
 add_subdirectory(utilities)
 
-# Create the executable and link against libzip and utilities
-add_executable(runMe ${MAIN} ${MISSIONS})
-target_link_libraries(runMe PRIVATE PkgConfig::LIBZIP utilities)
+# Add the dbServiceFuncs.cpp file to the sources
+set(DB_SERVICE_FUNCS dbServiceFuncs.cpp)
+
+# Create the executable and link against libzip, utilities, and dbServiceFuncs.cpp
+add_executable(dbService ${MAIN} ${MISSIONS} ${DB_SERVICE_FUNCS})
+target_link_libraries(dbService PRIVATE PkgConfig::LIBZIP utilities)

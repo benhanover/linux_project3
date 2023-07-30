@@ -1,0 +1,6 @@
+/home/vboxuser/ProjectLinux3/linux_project3/dbService/build/CMakeFiles/dbService.dir
+/home/vboxuser/ProjectLinux3/linux_project3/dbService/build/CMakeFiles/edit_cache.dir
+/home/vboxuser/ProjectLinux3/linux_project3/dbService/build/CMakeFiles/rebuild_cache.dir
+/home/vboxuser/ProjectLinux3/linux_project3/dbService/build/utilities/CMakeFiles/utilities.dir
+/home/vboxuser/ProjectLinux3/linux_project3/dbService/build/utilities/CMakeFiles/edit_cache.dir
+/home/vboxuser/ProjectLinux3/linux_project3/dbService/build/utilities/CMakeFiles/rebuild_cache.dir

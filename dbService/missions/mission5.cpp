@@ -3,11 +3,11 @@
 
 void zipDataBase(System& airports)
 {
-    fs::path projectPath = fs::current_path().parent_path()/"DB.zip";
-    fs::path DB_path = fs::current_path().parent_path()/"DB";
+    fs::path DB_dir_path = fs::current_path().parent_path()/"DB";
+    fs::path zipFilePath = fs::current_path().parent_path()/"DB.zip";
 
-    string s_DB_path = DB_path; 
-    string s_projectPath = projectPath;
+    string s_DB_dir_path = DB_dir_path; 
+    string s_zipFilePath = zipFilePath;
 
-    airports.zipDirectory(s_DB_path, s_projectPath);
+    airports.zipDirectory(DB_dir_path, s_zipFilePath);
 }

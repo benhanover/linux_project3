@@ -50,7 +50,7 @@ public:
     void getAllPaths(vector<string> &paths);
     void addFileToZip(zip_t *archive, const std::filesystem::path &filePath, const std::filesystem::path &baseDirectory);
     void zipDirectory(const std::string &directoryPath, const std::string &zipFilePath);
-    bool fetchDB(vector<string> airportsIcaoCodes);
+    void fetchDB(vector<string> airportsNamesVector, bool& fetchedAll);
     void load_db();
     bool checkIfAllInDB(vector<string> &paths, vector<string> &missing_names, int numOfCodesRecieved, vector<string> codesRecievedArr);
     bool checkIfAllInDbAndUpdateMissing(vector<string> &missing_names, vector<string> codesRecievedArr);

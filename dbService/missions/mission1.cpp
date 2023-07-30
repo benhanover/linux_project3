@@ -4,6 +4,6 @@
 bool fetchAirportsData(System& airports, vector<string> airportsCodeNames)
 {
    bool fetchedAll = false;
-   fetchedAll = airports.fetchDB(airportsCodeNames);
+   airports.fetchDB(airportsCodeNames, fetchedAll);
    return fetchedAll;
 }

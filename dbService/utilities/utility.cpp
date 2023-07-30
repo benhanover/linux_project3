@@ -22,13 +22,10 @@ int System::getAirportIndexByName(string& airportName)
     }
 }
 
-bool System::fetchDB(vector<string> airportsIcaoCodes)
-{
-    bool fetchedAll = false;
-    //vector<string> airportsNamesVector;
-    //getAllAirportsNames(airportsNamesVector);
+void System::fetchDB(vector<string> airportsNamesVector, bool& fetchedAll)
+{   
     string airportNames = "";
-    for (auto& name : airportsIcaoCodes) 
+    for (auto& name : airportsNamesVector) 
         airportNames += name += " ";
 
     fs::path buildPath = fs::current_path();
@@ -47,22 +44,28 @@ bool System::fetchDB(vector<string> airportsIcaoCodes)
     system("chmod u+x clean.sh");
     system("chmod u+x flightScanner.sh");
 
-    //delete previous DB
-    system((clean += airportNames).c_str());  /////if it doesn't exist??
-    deleteAll();
-    //create data base
-    system((flightScanner += airportNames).c_str());
+    //if those airports are in DB folder and in the program
+    //delete previous DB folder and delete data from the vector - will be reloaded later
+    if (this->dbLoaded)
+    {
+        system((clean += airportNames).c_str());
+        deleteAll();     
+    }
     
+    //create data base
+    int status = system((flightScanner += airportNames).c_str());
+    int exitStatus = WEXITSTATUS(status);
+    
+    if (exitStatus == 0)
+        fetchedAll = true;
+    else //exitStatus == 1
+        fetchedAll = false;
+
     if (chdir(buildPath.c_str()) != 0) {
         std::cout << "Failed to change directory.\n";
     }
     
     load_db();
-    
-    if (fetchedAll)
-        return true;
-    else
-        return false;
 }
 
 void System::load_db()
