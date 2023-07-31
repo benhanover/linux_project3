@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd DB
+
 for dir in "$@"; do
 
     if [ -d "$dir" ]; then

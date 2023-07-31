@@ -3,43 +3,71 @@
 
 void runFlightsService(int FileDescriptorFsToDb,int FileDescriptorDbToFs)
 {
+    cout << "in runFlightsService" << endl;
+
+    bool gotShutDownOpcode = false;
     int vectorSize, choice = 0;
 
-    while (choice != SHUT_DOWN_CHOICE) 
+    while (!gotShutDownOpcode)  
     {
         vector<string> codeNames;
         string output;
 
         choice = getChoice();
+            cout << "got choice and sending to dbService: " << choice << endl;
+
         
         writeChoiceToDbService(FileDescriptorFsToDb, choice);
 
-        if(choice >= 1 && choice <= 4)
-        {
-            getInputForChoice(choice, codeNames);
-            
-            writeUserInputToDb(FileDescriptorFsToDb, codeNames);
+        if (choice == SHUT_DOWN_CHOICE) {
+            gotShutDownOpcode = true;
         }
-        
-       readOutputFromDbAndPrint(FileDescriptorDbToFs);
+        else {
+
+            if(choice >= 1 && choice <= 4)
+            {
+                getInputForChoice(choice, codeNames);
+                
+                writeUserInputToDb(FileDescriptorFsToDb, codeNames);
+            }
+            
+            readOutputFromDbAndPrint(FileDescriptorDbToFs);
+        }
+       
     }
 }
 
 void writeChoiceToDbService(int FileDescriptorFsToDb, int choice)
 {
-   write(FileDescriptorFsToDb, &choice, sizeof(choice));
+        cout << "in writeChoiceToDbService" << endl;
+
+    write(FileDescriptorFsToDb, &choice, sizeof(choice));
+    usleep(10);
+
 }
 
 void writeUserInputToDb(int FileDescriptorFsToDb,vector<string>& codeNames)
 {
+        cout << "in writeUserInputToDb" << endl;
+
+
     int vectorSize = codeNames.size();
     write(FileDescriptorFsToDb, &vectorSize, sizeof(vectorSize));
     for (const auto& name : codeNames)
+    {
         write(FileDescriptorFsToDb, name.c_str(), name.size() + 1);  // Include null terminator
+                cout << "writing to DB: " << name << endl;
+
+        usleep(10);
+    }
 }
 
 void readOutputFromDbAndPrint(int FileDescriptorDbToFs)
 {
+
+        cout << "in readOutputFromDbAndPrint" << endl;
+
+
     //Read the output from dbService
     char buffer[BUFFER_SIZE];
     int resSize;

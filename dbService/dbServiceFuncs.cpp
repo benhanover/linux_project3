@@ -1,39 +1,57 @@
 #include "./dbServiceFuncs.h"
 
-void runDbService(int FileDescriptorFsToDb,int FileDescriptorDbToFs, bool zipContainedData)
+void runDbService(int FileDescriptorFsToDb,int FileDescriptorDbToFs, bool thereIsZipFile)
 {
     cout << "in runDbService" << endl;
 
 
     System airports;
-    int choice = 0;
+    int choice;
+    bool gotShutDownOpcode = false;
     vector<string> codeNamesVec;
     string outputStr;
 
-    if (zipContainedData)
+    if (thereIsZipFile)
         airports.load_db();
 
-    while (choice != SHUT_DOWN_CHOICE) 
+    while (!gotShutDownOpcode) 
     {
         int choice = readChoiceFromFlightsService(FileDescriptorFsToDb);
 
-        bool dbLoaded = airports.isDataBaseLoaded();
-        if ((choice >= 2 && choice <= 5) && dbLoaded == false) //there is no data available to execute choice 2/3/4
-        {
-            outputStr = "Currently there is not any data in the program.\nCan not run choice no. " + choice + '\n';
-            outputStr += "In order to get data, please choose option 1 and provide the desired ICAO codes.\n";
+        if (choice == SHUT_DOWN_CHOICE){
+            
+            gracefulExit(airports);
+            gotShutDownOpcode = true;
         }
-        else
-        {
+        else {
+
             if(choice >= 1 && choice <= 4)
-                readUserInputFromFlightsService(FileDescriptorFsToDb,codeNamesVec);
+                    readUserInputFromFlightsService(FileDescriptorFsToDb,codeNamesVec);
+            
+            bool dbLoaded = airports.isDataBaseLoaded();
+            string isDBloaded;
+            if (dbLoaded) 
+                isDBloaded = "true";
+            else
+                isDBloaded = "false";
 
-            outputStr = getDataForParent(choice, airports, codeNamesVec);
-        } 
+            cout << "dbLoaded is: " << isDBloaded << endl;
+            if ((choice >= 2 && choice <= 5) && dbLoaded == false) //there is no data available to execute choice 2/3/4/5
+            {
+                outputStr = "Currently there is not any data in the program. Can not run choice number " + to_string(choice) + ".\n";
+                outputStr += "In order to get data, please choose option 1 and provide the desired ICAO codes.\n";
 
-        writeOutputToFlightsService(FileDescriptorDbToFs, outputStr);
+                cout << "dbService returns string that there's no data available" << endl;
+
+            }
+            else
+                outputStr = getDataForParent(choice, airports, codeNamesVec);
+        
+            writeOutputToFlightsService(FileDescriptorDbToFs, outputStr);
+        }
     }
    
+
 }
 
 
@@ -44,7 +62,7 @@ int readChoiceFromFlightsService(int FileDescriptorFsToDb)
 
     int choice;
     read(FileDescriptorFsToDb, &choice, sizeof(choice));
-    cout << "got choice:" << choice << endl;
+    cout << "got choice:  " << choice << endl;
     return choice;
 }
 
@@ -66,7 +84,7 @@ void readUserInputFromFlightsService(int FileDescriptorFsToDb,vector<string>& co
         {
             buffer[bytesRead] = '\0';
             codeNames.emplace_back(buffer);
-            cout << "Got this code" << buffer[bytesRead] << endl;
+            cout << "Got this code" << buffer << endl;
         }
         memset(buffer, 0, sizeof(buffer));
     }   
@@ -76,9 +94,9 @@ void readUserInputFromFlightsService(int FileDescriptorFsToDb,vector<string>& co
 void writeOutputToFlightsService(int FileDescriptorDbToFs, string outputStr)
 {
     cout << "in writeOutputToFlightsService" << endl;
+    cout << "writing to FS:" << outputStr << endl;
 
-
-    int outputStrSize = outputStr.size() + 1;
+    int outputStrSize = strlen(outputStr.c_str()) + 1;
     write(FileDescriptorDbToFs, &outputStrSize, sizeof(outputStrSize));
     write(FileDescriptorDbToFs, outputStr.c_str(), outputStrSize);
 }
@@ -96,9 +114,9 @@ string getDataForParent(int choice,System& airports, vector<string> codeNames)
         {
            fetchedAll = fetchAirportsData(airports, codeNames);
            if (fetchedAll)
-                result = "The system fetched all data.";
+                result = "The system fetched all data.\n";
             else 
-                result = "The system could not fetch all data. You can try again with different ICAO codes.";
+                result = "The system could not fetch all data. You can try again with different ICAO codes.\n";
         }
         break;
         case 2: result = printAirportsArv(airports, codeNames);
@@ -114,10 +132,21 @@ string getDataForParent(int choice,System& airports, vector<string> codeNames)
 }
 
 
-///// need to fix /////***********************
-void unzipDB(bool& zipContainedData)
+void unzipDB(bool& thereIsZipFile)
 {
+
+    cout << "in unzipDB" << endl;
+
+
     string zipFilePath = fs::current_path().parent_path()/"DB.zip";
+
+    if (!filesystem::exists(zipFilePath))
+    {
+        std::cerr << "DB.zip does not exist." << std::endl;
+        thereIsZipFile = false;
+        return;
+    }
+
 
     zip_t *archive = zip_open(zipFilePath.c_str(), ZIP_RDONLY, nullptr);
     if (archive == nullptr)
@@ -126,7 +155,7 @@ void unzipDB(bool& zipContainedData)
         return;
     }
     
-    zipContainedData = containsDataDirectories(archive);
+    //zipContainedData = containsDataDirectories(archive);
 
 
     string destinationPath = fs::current_path().parent_path()/"DB";
@@ -183,6 +212,7 @@ void unzipDB(bool& zipContainedData)
         }
     }
 
+    /*
     //making the scripts executable
     string flightScannerScriptPath = destinationPath + "/flightScanner.sh";
     string command = "chmod +x " + flightScannerScriptPath;
@@ -190,14 +220,19 @@ void unzipDB(bool& zipContainedData)
     
     string cleanScriptPath = destinationPath + "/clean.sh";
     command = "chmod +x " + cleanScriptPath;
-    system(command.c_str());
+    system(command.c_str());*/
 
     zip_close(archive);
+    thereIsZipFile = true;
     cout << "Successfully unzipped the directory." << endl;
 }
 
-bool containsDataDirectories(zip_t* archive)
+/*bool containsDataDirectories(zip_t* archive)
 {
+        cout << "in containsDataDirectories" << endl;
+
+     bool containsFilesInDirectories = false; // Flag to track if we find directories with files
+
     int numEntries = zip_get_num_entries(archive, ZIP_FL_UNCHANGED);
     for (int i = 0; i < numEntries; ++i) {
         zip_stat_t entryStats;
@@ -208,15 +243,27 @@ bool containsDataDirectories(zip_t* archive)
 
         if (entryStats.name[strlen(entryStats.name) - 1] == '/') {
             // Entry is a directory
-            return true;
+            // We don't need to set the flag here as the loop will continue and check the contents of the directory
+        } else {
+            // Entry is a file (not a directory)
+            containsFilesInDirectories = true; // Set the flag as we found a file in a directory
         }
     }
-    return false;
-}
+    if (containsDataDirectories) 
+        cout << "there IS data" << endl;
+    else 
+        cout << "there IS NOOOOO data" << endl;
+
+
+    return containsFilesInDirectories;
+}*/
 
 
 void createNamedPipes(string& namedPipeFlightsServiceToDbService, string& namedPipeDbServiceToFlightsService)
 {
+            cout << "in createNamedPipes" << endl;
+
+    
     string namedPipeDirPath = "/tmp/flights_pipes";
     // Create namedPipe directory manually
     fs::create_directory(namedPipeDirPath);
@@ -233,6 +280,9 @@ void createNamedPipes(string& namedPipeFlightsServiceToDbService, string& namedP
 void closeAndUnlinkNamedPipes(int FileDescriptorFsToDb, int FileDescriptorDbToFs, 
         string namedPipeFlightsServiceToDbService, string namedPipeDbServiceToFlightsService)
 {
+    
+                cout << "in closeAndUnlinkNamedPipes" << endl;
+
     close(FileDescriptorFsToDb);
     close(FileDescriptorDbToFs);
 

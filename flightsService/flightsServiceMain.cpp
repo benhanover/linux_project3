@@ -8,7 +8,7 @@ int main() {
     // dbService creates the named pipes.
 
     int FileDescriptorFsToDb = open(namedPipeFlightsServiceToDbService.c_str(), O_RDWR);
-    int FileDescriptorDbToFs = open(namedPipeFlightsServiceToDbService.c_str(), O_RDWR);
+    int FileDescriptorDbToFs = open(namedPipeDbServiceToFlightsService.c_str(), O_RDWR);
 
     runFlightsService(FileDescriptorFsToDb, FileDescriptorDbToFs);
 

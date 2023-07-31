@@ -19,12 +19,13 @@ class FlightInfo;
 class System
 {
     vector<SingleAirport*> airportsVector;
-    bool dbLoaded = false;  //indicates if there is database and it was loaded to "airports"
+    bool dbLoaded;  //indicates if there is database and it was loaded to "airports"
 
 public:
     System()
     {
         airportsVector.reserve(10);
+        dbLoaded = false;
     }
     ~System()
     {
@@ -42,6 +43,8 @@ public:
             delete airport;
         }
         airportsVector.clear();
+        
+        dbLoaded = false;
     }
     vector<SingleAirport *> getAirportsVector() const { return airportsVector; }
     vector<FlightInfo *> getFlightsByCallsign(string &callsign);

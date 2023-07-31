@@ -29,27 +29,27 @@ void System::fetchDB(vector<string> airportsNamesVector, bool& fetchedAll)
         airportNames += name += " ";
 
     fs::path buildPath = fs::current_path();
-    fs::path DB_path = fs::current_path().parent_path()/"DB";
+    fs::path scripts_path = fs::current_path().parent_path();
 
     
-    string s_DB_path = DB_path;
+    string s_scripts_path = scripts_path;
     string s_buildPath = buildPath;
 
-    if (chdir(s_DB_path.c_str()) != 0) {
+    if (chdir(s_scripts_path.c_str()) != 0) {
         cout << "Failed to change directory.\n";
     }
     string clean = "./clean.sh "; 
     string flightScanner = "./flightScanner.sh ";
 
-    system("chmod u+x clean.sh");
-    system("chmod u+x flightScanner.sh");
+    system("chmod +x clean.sh");
+    system("chmod +x flightScanner.sh");
 
     //if those airports are in DB folder and in the program
     //delete previous DB folder and delete data from the vector - will be reloaded later
     if (this->dbLoaded)
     {
         system((clean += airportNames).c_str());
-        deleteAll();     
+        deleteAll(); 
     }
     
     //create data base
@@ -70,6 +70,8 @@ void System::fetchDB(vector<string> airportsNamesVector, bool& fetchedAll)
 
 void System::load_db()
 {
+    cout << "in Load-db function" << endl;
+
     vector<string> paths;
     paths.reserve(10);
     getAllPaths(paths);
