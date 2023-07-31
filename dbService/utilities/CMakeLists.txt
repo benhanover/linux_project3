@@ -9,4 +9,3 @@ file(GLOB UTILITIES_SOURCES
 add_library(utilities SHARED
   ${UTILITIES_SOURCES}
 )
-

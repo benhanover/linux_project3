@@ -28,16 +28,16 @@ void System::fetchDB(vector<string> airportsNamesVector, bool& fetchedAll)
     for (auto& name : airportsNamesVector) 
         airportNames += name += " ";
 
-    fs::path buildPath = fs::current_path();
-    fs::path scripts_path = fs::current_path().parent_path();
+    //fs::path currentPath = fs::current_path();
+    //fs::path scripts_path = fs::current_path().parent_path();
 
     
-    string s_scripts_path = scripts_path;
-    string s_buildPath = buildPath;
+    //string s_scripts_path = scripts_path;
+    //string s_currentPath = currentPath;
 
-    if (chdir(s_scripts_path.c_str()) != 0) {
+    /*if (chdir(s_scripts_path.c_str()) != 0) {
         cout << "Failed to change directory.\n";
-    }
+    }*/
     string clean = "./clean.sh "; 
     string flightScanner = "./flightScanner.sh ";
 
@@ -61,9 +61,9 @@ void System::fetchDB(vector<string> airportsNamesVector, bool& fetchedAll)
     else //exitStatus == 1
         fetchedAll = false;
 
-    if (chdir(buildPath.c_str()) != 0) {
+    /*if (chdir(currentPath.c_str()) != 0) {
         std::cout << "Failed to change directory.\n";
-    }
+    }*/
     
     load_db();
 }
@@ -77,6 +77,8 @@ void System::load_db()
     getAllPaths(paths);
     //for each airport there are 2 paths (apt, dpt)
     int numberOfAirports = paths.size() / 2;
+
+    cout << "numberOfAirports is : " << numberOfAirports <<endl;
 
     for (int i = 0; i < numberOfAirports; i++)
     {
@@ -202,9 +204,14 @@ void SingleAirport::updateAirportDataFlights(string& path)
 
 void System::getAllPaths(vector<string>& paths)
 {
-    fs::path parentPath = fs::current_path().parent_path();
+
+    cout << "in getAllPaths" << endl;
+
+    fs::path currentPath = fs::current_path();
     
-    for (const auto& entry : fs::recursive_directory_iterator(parentPath))
+    cout << "parent path is:" << (currentPath) << endl;
+
+    for (const auto& entry : fs::recursive_directory_iterator(currentPath))
     {
         if (fs::is_directory(entry.path()))
         {   // Skip directories

@@ -23,4 +23,8 @@ set(DB_SERVICE_FUNCS dbServiceFuncs.cpp)
 
 # Create the executable and link against libzip, utilities, and dbServiceFuncs.cpp
 add_executable(dbService ${MAIN} ${MISSIONS} ${DB_SERVICE_FUNCS})
+
+# Set the RPATH to include the build/dependencies directory
+set_target_properties(dbService PROPERTIES INSTALL_RPATH "\$ORIGIN/../../build/dependencies")
+
 target_link_libraries(dbService PRIVATE PkgConfig::LIBZIP utilities)
