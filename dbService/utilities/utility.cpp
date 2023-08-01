@@ -91,7 +91,8 @@ void System::load_db()
         airportsVector.push_back(currentAirport);
     }
 
-    this->dbLoaded = true;   //indicates if there is database and it was loaded to "airports"
+    if (numberOfAirports > 0)
+        this->dbLoaded = true;   //indicates if there is database and it was loaded to "airports"
 }
 
 vector<FlightInfo*> System::getFlightsByCallsign(string& callsign)
@@ -207,11 +208,11 @@ void System::getAllPaths(vector<string>& paths)
 
     cout << "in getAllPaths" << endl;
 
-    fs::path currentPath = fs::current_path();
+    fs::path NamedPipePath = "/tmp/flights_pipes";
     
-    cout << "parent path is:" << (currentPath) << endl;
+    cout << "current path is:" << (NamedPipePath) << endl;
 
-    for (const auto& entry : fs::recursive_directory_iterator(currentPath))
+    for (const auto& entry : fs::recursive_directory_iterator(NamedPipePath))
     {
         if (fs::is_directory(entry.path()))
         {   // Skip directories

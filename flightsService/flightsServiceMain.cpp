@@ -2,19 +2,32 @@
 
 int main() {
     
-    string namedPipeFlightsServiceToDbService ="/tmp/flights_pipes/namedPipeFlightsServiceToDbService";
-    string namedPipeDbServiceToFlightsService = "/tmp/flights_pipes/namedPipeDbServiceToFlightsService";
+    string namedPipeFsToDbService ="/tmp/flights_pipes/namedPipeFlightsServiceToDbService";
+    string namedPipeDbToFsService = "/tmp/flights_pipes/namedPipeDbServiceToFlightsService";
 
     // dbService creates the named pipes.
 
-    int FileDescriptorFsToDb = open(namedPipeFlightsServiceToDbService.c_str(), O_RDWR);
-    int FileDescriptorDbToFs = open(namedPipeDbServiceToFlightsService.c_str(), O_RDWR);
+    int DataFileDescriptorFsToDb = open(namedPipeFsToDbService.c_str(), O_RDWR);
+    int DataFileDescriptorDbToFs = open(namedPipeDbToFsService.c_str(), O_RDWR);
 
-    runFlightsService(FileDescriptorFsToDb, FileDescriptorDbToFs);
 
-    closeAndUnlinkNamedPipes(FileDescriptorFsToDb, FileDescriptorDbToFs,
-      namedPipeFlightsServiceToDbService, namedPipeDbServiceToFlightsService);
+    string statusPipeFsToDb = "/tmp/flights_pipes/statusPipeFlightsServiceToDbService";
+    string statusPipeDbToFs = "/tmp/flights_pipes/statusPipeDbServiceToFlightsService";
+
+    int StatusFileDescriptorFsToDb = open(statusPipeFsToDb.c_str(), O_RDWR);
+    int StatusFileDescriptorDbToFs = open(statusPipeDbToFs.c_str(), O_RDWR);
+
+
+    runFlightsService(DataFileDescriptorFsToDb, DataFileDescriptorDbToFs,
+      StatusFileDescriptorFsToDb,StatusFileDescriptorDbToFs);
+
+    closeAndUnlinkNamedPipes(DataFileDescriptorFsToDb, DataFileDescriptorDbToFs,
+      namedPipeFsToDbService, namedPipeDbToFsService);
+    
+    closeAndUnlinkStatusPipes(StatusFileDescriptorFsToDb, StatusFileDescriptorDbToFs, 
+        statusPipeFsToDb, statusPipeDbToFs);
    
+
     exit(0);
     
 }

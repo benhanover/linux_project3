@@ -1,15 +1,22 @@
 # include "flightsServiceFuncs.h"
 
 
-void runFlightsService(int FileDescriptorFsToDb,int FileDescriptorDbToFs)
+void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs,
+                       int StatusFileDescriptorFsToDb,int StatusFileDescriptorDbToFs)
 {
     cout << "in runFlightsService" << endl;
 
+    string fsStartedOrKeepsRunning = flightsServiceStartedStr; //the first time it is defined, the program started or restarted
+    string dbStartedOrKeepsRunning; 
+    
     bool gotShutDownOpcode = false;
     int vectorSize, choice = 0;
 
     while (!gotShutDownOpcode)  
-    {
+    {    
+        sendFsStatusToDb(StatusFileDescriptorFsToDb, fsStartedOrKeepsRunning);
+        getDbStatusAndClearDataPipeIfRestarted(StatusFileDescriptorDbToFs, dbStartedOrKeepsRunning, DataFileDescriptorDbToFs);
+
         vector<string> codeNames;
         string output;
 
@@ -17,7 +24,7 @@ void runFlightsService(int FileDescriptorFsToDb,int FileDescriptorDbToFs)
             cout << "got choice and sending to dbService: " << choice << endl;
 
         
-        writeChoiceToDbService(FileDescriptorFsToDb, choice);
+        writeChoiceToDbService(DataFileDescriptorFsToDb, choice);
 
         if (choice == SHUT_DOWN_CHOICE) {
             gotShutDownOpcode = true;
@@ -28,59 +35,147 @@ void runFlightsService(int FileDescriptorFsToDb,int FileDescriptorDbToFs)
             {
                 getInputForChoice(choice, codeNames);
                 
-                writeUserInputToDb(FileDescriptorFsToDb, codeNames);
+                writeUserInputToDb(DataFileDescriptorFsToDb, codeNames);
             }
             
-            readOutputFromDbAndPrint(FileDescriptorDbToFs);
+            readOutputFromDbAndPrint(DataFileDescriptorDbToFs, StatusFileDescriptorDbToFs);
         }
-       
+    
     }
 }
 
-void writeChoiceToDbService(int FileDescriptorFsToDb, int choice)
+void getDbStatusAndClearDataPipeIfRestarted(int StatusFileDescriptorDbToFs, string& dbStartedOrKeepsRunning, int DataFileDescriptorDbToFs)
+{
+    cout << "in getDbStatusAndClearDataPipeIfRestarted" << endl;
+
+
+    char buffer[MAX_MSG_STARTED_OR_RUNNING];
+    ssize_t bytesRead = read(StatusFileDescriptorDbToFs, buffer, sizeof(buffer));
+    buffer[bytesRead] = '\0';
+        
+        cout <<"status of DB is: " << buffer << endl; 
+
+
+    if (buffer == dbServiceStartedStr)
+    {
+        cout << "Notice: dbService Program Just started. Ignoring old Data sent from dbService." << endl << endl;
+        //dbStartedOrKeepsRunning = dbServiceStartedStr;
+        
+        setNonBlockingMode(DataFileDescriptorDbToFs);
+
+        //clearing named Pipe Db To Fs, to avoid old data if present in the data pipe
+        char buffer[SIZE_TO_READ];
+        int resSize;
+        ssize_t byteRead;
+        do
+        {
+            cout << "in clearDataLoop" << endl;
+
+           byteRead = read(DataFileDescriptorDbToFs, buffer, SIZE_TO_READ);
+        }
+        while (byteRead > 0 || !(byteRead == -1 && errno == EAGAIN));
+
+        setBlockingMode(DataFileDescriptorDbToFs);
+
+    }
+    else 
+    {
+        dbStartedOrKeepsRunning = dbServiceKeepsRunningStr;
+    }
+}
+
+void setNonBlockingMode(int fileDescriptor)
+{
+    int flags = fcntl(fileDescriptor, F_GETFL, 0);
+    fcntl(fileDescriptor, F_SETFL, flags | O_NONBLOCK);
+}
+
+void setBlockingMode(int fileDescriptor)
+{
+    int flags = fcntl(fileDescriptor, F_GETFL, 0);
+    flags &= ~O_NONBLOCK; // Clear the O_NONBLOCK flag
+    fcntl(fileDescriptor, F_SETFL, flags);
+}
+
+void sendFsStatusToDb(int StatusFileDescriptorFsToDb, string& fsStartedOrKeepsRunning)
+{ 
+
+        cout << "in sendFsStatusToDb" << endl;
+
+    int statusStrSize;
+
+    if (fsStartedOrKeepsRunning == flightsServiceStartedStr)
+    {
+        statusStrSize = strlen(flightsServiceStartedStr.c_str()) + 1;
+        write(StatusFileDescriptorFsToDb, flightsServiceStartedStr.c_str(), statusStrSize);
+        
+        fsStartedOrKeepsRunning = flightsServiceKeepsRunningStr; //update for next, from now it will send it keeps running
+    }
+    else  //flightsService did not just started, it keeps running, send info to dbService
+    {
+        statusStrSize = strlen(flightsServiceKeepsRunningStr.c_str()) + 1;
+        write(StatusFileDescriptorFsToDb, flightsServiceKeepsRunningStr.c_str(), statusStrSize);
+    }
+}
+
+
+void writeChoiceToDbService(int DataFileDescriptorFsToDb, int choice)
 {
         cout << "in writeChoiceToDbService" << endl;
 
-    write(FileDescriptorFsToDb, &choice, sizeof(choice));
+    write(DataFileDescriptorFsToDb, &choice, sizeof(choice));
     usleep(10);
 
 }
 
-void writeUserInputToDb(int FileDescriptorFsToDb,vector<string>& codeNames)
+void writeUserInputToDb(int DataFileDescriptorFsToDb,vector<string>& codeNames)
 {
         cout << "in writeUserInputToDb" << endl;
 
 
     int vectorSize = codeNames.size();
-    write(FileDescriptorFsToDb, &vectorSize, sizeof(vectorSize));
+    write(DataFileDescriptorFsToDb, &vectorSize, sizeof(vectorSize));
     for (const auto& name : codeNames)
     {
-        write(FileDescriptorFsToDb, name.c_str(), name.size() + 1);  // Include null terminator
+        write(DataFileDescriptorFsToDb, name.c_str(), name.size() + 1);  // Include null terminator
                 cout << "writing to DB: " << name << endl;
 
         usleep(10);
     }
 }
 
-void readOutputFromDbAndPrint(int FileDescriptorDbToFs)
+
+void readOutputFromDbAndPrint(int DataFileDescriptorDbToFs, int StatusFileDescriptorDbToFs)
 {
 
         cout << "in readOutputFromDbAndPrint" << endl;
+    
+    /*setNonBlockingMode(StatusFileDescriptorDbToFs);
+    string dbStartedOrKeepsRunning;
+    getDbStatusAndClearDataPipeIfRestarted(StatusFileDescriptorDbToFs, dbStartedOrKeepsRunning, DataFileDescriptorDbToFs);
+    setBlockingMode(StatusFileDescriptorDbToFs);
 
-
-    //Read the output from dbService
-    char buffer[BUFFER_SIZE];
-    int resSize;
-    read(FileDescriptorDbToFs, &resSize, sizeof(resSize));
-    while(resSize > 0)
+    if (dbStartedOrKeepsRunning == dbServiceStartedStr)
     {
-        ssize_t byteRead = read(FileDescriptorDbToFs, buffer, SIZE_TO_READ);
-        buffer[byteRead] = '\0';
-        cout << buffer; 
-        resSize -= byteRead;
-        memset(buffer, 0, BUFFER_SIZE);
+        cout << "The last choice you made could not be performed." << endl;
+        cout << "Enter it again or enter a new choice." << endl << endl;
     }
+    else
+    {*/
+        //Read the output from dbService
+        char buffer[BUFFER_SIZE];
+        int resSize;
+        read(DataFileDescriptorDbToFs, &resSize, sizeof(resSize));
+        while(resSize > 0)
+        {
+            ssize_t byteRead = read(DataFileDescriptorDbToFs, buffer, SIZE_TO_READ);
+            buffer[byteRead] = '\0';
+            cout << buffer; 
+            resSize -= byteRead;
+            memset(buffer, 0, BUFFER_SIZE);
+        }
 
+   // }
 }
 
 int getChoice()
@@ -109,6 +204,7 @@ int getChoice()
 
 void printMenuToShowOptionalChoices()
 {
+    cout << endl << endl;
     cout << "*************************************" << endl;
     cout << "1 - Fetch airports data." << endl;
     cout << "2 - Print airports incoming flights." << endl;
@@ -159,5 +255,20 @@ void closeAndUnlinkNamedPipes(int FileDescriptorFsToDb, int FileDescriptorDbToFs
 
     unlink(namedPipeFlightsServiceToDbService.c_str());
     unlink(namedPipeDbServiceToFlightsService.c_str());
+    
+}
+
+
+void closeAndUnlinkStatusPipes(int StatusFileDescriptorFsToDb,int StatusFileDescriptorDbToFs, 
+        string statusPipeFsToDb, string statusPipeDbToFs)
+{
+
+                cout << "in closeAndUnlinkStatusPipes" << endl;
+
+    close(StatusFileDescriptorFsToDb);
+    close(StatusFileDescriptorDbToFs);
+
+    unlink(statusPipeFsToDb.c_str());
+    unlink(statusPipeDbToFs.c_str());
     
 }

@@ -5,6 +5,7 @@ yesterday=$(date +%s --date="yesterday")
 
 success=0
 
+cd /tmp/flights_pipes
 mkdir DB
 cd DB
 
@@ -13,7 +14,7 @@ for ICAO in $@; do
     airportInfo=$(curl -s "https://opensky-network.org/api/airports?icao=$ICAO")
 
     if [ "$airportInfo" == "" ];  then
-        echo "$ICAO is invalid ICAO code or does not exist"
+        echo "script ---- $ICAO is invalid ICAO code or does not exist"
         success=1   # Set success to 1 indicating an error occurred 
     else
         echo "creating directory for $ICAO"
