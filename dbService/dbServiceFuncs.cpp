@@ -9,65 +9,125 @@ void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, boo
     bool gotShutDownOpcode = false;
     vector<string> codeNamesVec;
     string outputStr;
-    
+    /* 
     string dbStartedOrKeepsRunning = dbServiceStartedStr; //the first time it is defined, the program started or restarted
     string fsStartedOrKeepsRunning;
     bool firstRunDbService =true;
-
+ */
     if (thereIsZipFile)
         airports.load_db();
 
     //sendToFSThatDbStarted(DataFileDescriptorDbToFs);
 
+    int fsSignal;
+    sendDbStartedStrToFs(DataFileDescriptorDbToFs);
+    getFsStatus(DataFileDescriptorFsToDb,fsSignal,codeNamesVec);
+    
+    bool dbJustRestarted;
+    if (fsSignal != NUM_SIGNAL_FS_STARTED)
+        dbJustRestarted = true; //at first got signal which indicates fs was running before, and sent data to dbService, so dbService also ran before
+    else
+        dbJustRestarted = false;
+
     while (!gotShutDownOpcode) 
     {    
-       
-        readInputFromFlightsService(DataFileDescriptorFsToDb, choice, codeNamesVec);
-
-        if (choice == SHUT_DOWN_CHOICE)
+        choice = 0;
+        if (dbJustRestarted) //if there was input in pipe before restart - skip this iteration
         {
-            outputStr = gracefulExit(airports);
-            writeOutputToFlightsService(DataFileDescriptorDbToFs, outputStr);
-            gotShutDownOpcode = true;
+            dbJustRestarted = false;
+            string ignore = "ignore";
+            writeOutputToFlightsService(DataFileDescriptorDbToFs, ignore);
+
         }
         else
-        {
-            bool dbLoaded = airports.isDataBaseLoaded();
-            if ((choice >= 2 && choice <= 5) && dbLoaded == false) //there is no data available to execute choice 2/3/4/5
+        {  
+            readInputFromFlightsService(DataFileDescriptorFsToDb, choice, codeNamesVec);
+
+            if (choice == SHUT_DOWN_CHOICE)
             {
-                outputStr = "Currently there is not any data in the program. Can not run choice number " + to_string(choice) + ".\n";
-                outputStr += "In order to get data, please choose option 1 and provide the desired ICAO codes.\n";
-
-                cout << "dbService returns string that there's no data available" << endl;
-
+                outputStr = gracefulExit(airports);
+                writeOutputToFlightsService(DataFileDescriptorDbToFs, outputStr);
+                gotShutDownOpcode = true;
             }
-            else
-            {   
-                outputStr = getDataForParent(choice, airports, codeNamesVec);
-            }
+            else if (choice != NUM_SIGNAL_FS_STARTED)
+            {
+                bool dbLoaded = airports.isDataBaseLoaded();
+                if ((choice >= 2 && choice <= 5) && dbLoaded == false) //there is no data available to execute choice 2/3/4/5
+                {
+                    outputStr = "Currently there is not any data in the program. Can not run choice number " + to_string(choice) + ".\n";
+                    outputStr += "In order to get data, please choose option 1 and provide the desired ICAO codes.\n";
+
+                    cout << "dbService returns string that there's no data available" << endl;
+                }
+                else
+                    outputStr = getDataForParent(choice, airports, codeNamesVec);
 
                 writeOutputToFlightsService(DataFileDescriptorDbToFs, outputStr);
+            }
         }
     }
 
 }
 
-
-int readChoiceFromFlightsService(int DataFileDescriptorFsToDb)
+void sendDbStartedStrToFs(int DataFileDescriptorDbToFs)
 {
-    cout << "in readChoiceFromFlightsService" << endl;
-
-    int choice;
-    read(DataFileDescriptorFsToDb, &choice, sizeof(choice));
-    cout << "got choice:  " << choice << endl;
-    return choice;
-
+    writeOutputToFlightsService(DataFileDescriptorDbToFs, dbServiceStartedStr);
 }
+
+void getFsStatus(int DataFileDescriptorFsToDb, int& fsSignal, vector<string>& codeNamesVec)
+{
+    readInputFromFlightsService(DataFileDescriptorFsToDb, fsSignal,codeNamesVec);
+    //read(DataFileDescriptorFsToDb, &fsSignal, sizeof(fsSignal));
+    
+    cout << "got FS Status/num:  " << fsSignal << endl;
+/* 
+    if (fsSignal >= 1 && fsSignal <= 4) // ignore old request - read code from the pipe and ignore it
+    {
+        cout << "In getFsStatus loop to read old codes" << endl;
+
+        int vectorSize;
+        ssize_t bytesRead = read(DataFileDescriptorFsToDb, &vectorSize, sizeof(vectorSize));
+       
+        char buffer[MAX_NAME_LEN];
+        for (int i = 0; i < vectorSize; ++i)
+        {
+            bytesRead = read(DataFileDescriptorFsToDb, buffer, sizeof(buffer));
+            if (bytesRead > 0)
+            {
+                buffer[bytesRead] = '\0';
+                cout << "Got this code" << buffer << endl;
+            }
+            memset(buffer, 0, sizeof(buffer));
+        }   
+    } */
+}
+
 
 void readInputFromFlightsService(int DataFileDescriptorFsToDb,int& choice, vector<string>& codeNames)
 {
     cout << "in readInputFromFlightsService" << endl;
     
+    char inputStr[BUFFER_SIZE];
+    int resSize;
+    read(DataFileDescriptorFsToDb, &resSize, sizeof(resSize));
+    read(DataFileDescriptorFsToDb,inputStr, resSize);
+
+    
+    // Create a string stream to read from the input string
+    istringstream iss(inputStr);
+
+    // Read the number from the stream
+    iss >> choice;
+
+    // Read the words from the stream and store them in the vector
+    string singleCode;
+    codeNames.clear();
+
+    while (iss >> singleCode) {
+        codeNames.push_back(singleCode);
+    }
+
+/* 
     read(DataFileDescriptorFsToDb, &choice, sizeof(choice));
     cout << "got choice:  " << choice << endl;
 
@@ -90,7 +150,7 @@ void readInputFromFlightsService(int DataFileDescriptorFsToDb,int& choice, vecto
             }
             memset(buffer, 0, sizeof(buffer));
         }   
-    }
+    } */
 }
 
 void writeOutputToFlightsService(int DataFileDescriptorDbToFs, string outputStr)

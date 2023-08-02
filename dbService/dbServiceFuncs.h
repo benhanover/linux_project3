@@ -18,19 +18,21 @@
 #define MAX_NAME_LEN 10
 #define SHUT_DOWN_CHOICE 6
 #define MAX_MSG_STARTED_OR_RUNNING 30
-
+#define NUM_SIGNAL_FS_STARTED -1
+#define NUM_SIGNAL_FS_RUNNING -2
 using namespace std;
 namespace fs = std::filesystem;
 
 
 const string dbServiceStartedStr = "dbServiceStarted";
-const string dbServiceKeepsRunningStr = "dbServiceKeepsRunning";
-
-const string flightsServiceStartedStr = "fsServiceStarted";
-const string flightsServiceKeepsRunningStr = "fsServiceKeepsRunning";
 
 void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, bool thereIsZipFile);
 void readInputFromFlightsService(int DataFileDescriptorFsToDb,int& choice, vector<string>& codeNames);
+
+void sendDbStartedStrToFs(int DataFileDescriptorDbToFs);
+//void getFsStatus(int DataFileDescriptorFsToDb);
+
+void getFsStatus(int DataFileDescriptorFsToDb, int& fsSignal, vector<string>& codeNamesVec);
 
 //int readChoiceFromFlightsService(int FileDescriptorFsToDb);
 //void readUserInputFromFlightsService(int FileDescriptorFsToDb,vector<string>& codeNames);

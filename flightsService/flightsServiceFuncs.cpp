@@ -5,35 +5,32 @@ void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs
 {
     cout << "in runFlightsService" << endl;
 
-    string fsStartedOrKeepsRunning = flightsServiceStartedStr; //the first time it is defined, the program started or restarted
-    string dbStartedOrKeepsRunning; 
+    //string fsStartedOrKeepsRunning = flightsServiceStartedStr; //the first time it is defined, the program started or restarted
+    string dbStarted; 
     
     bool gotShutDownOpcode = false;
     int vectorSize, choice = 0;
 
+    cout << "flightsServise just started. Waiting for dbService." << endl;
+    sendFsStartedSignalToDb(DataFileDescriptorFsToDb);
+    getDbStatus(DataFileDescriptorDbToFs);
+
     while (!gotShutDownOpcode)  
     {    
-        
-        vector<string> codeNames;
+        string codeNamesStr;
         string output;
 
         choice = getChoice();
             cout << "got choice and sending to dbService: " << choice << endl;
         
         if(choice >= 1 && choice <= 4)
-                getInputForChoice(choice, codeNames);
+                getInputForChoice(choice, codeNamesStr);
         
-        writeInputToDbService(DataFileDescriptorFsToDb, choice, codeNames);
+        writeInputToDbService(DataFileDescriptorFsToDb, choice, codeNamesStr);
 
         if (choice == SHUT_DOWN_CHOICE)
             gotShutDownOpcode = true;
         
-/* 
-            if(choice >= 1 && choice <= 4)
-            {
-                
-                writeUserInputToDb(DataFileDescriptorFsToDb, codeNames);
- */
         if (choice == 1)
         {
             cout << "Sent request to dbService. Waiting for response." << endl;
@@ -47,23 +44,36 @@ void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs
     cout << "Shutting down flightsService." << endl;
 }
 
-       // writeInputToDbService(DataFileDescriptorFsToDb, choice, codeNames);
+     
 
-
-/* void writeChoiceToDbService(int DataFileDescriptorFsToDb, int choice)
+void sendFsStartedSignalToDb(int DataFileDescriptorFsToDb)
 {
-        cout << "in writeChoiceToDbService" << endl;
-
-    
-
+    int numSignal = NUM_SIGNAL_FS_STARTED;
+    string emptyStr = "";
+    writeInputToDbService(DataFileDescriptorFsToDb, numSignal, emptyStr);
+    //write(DataFileDescriptorFsToDb, &numSignal, sizeof(numSignal));
 }
- */
-void writeInputToDbService(int DataFileDescriptorFsToDb, int choice, vector<string>& codeNames)
+
+void getDbStatus(int DataFileDescriptorDbToFs)
+{
+    readOutputFromDbAndPrint(DataFileDescriptorDbToFs);
+}
+
+
+void writeInputToDbService(int DataFileDescriptorFsToDb, int choice, string& codeNamesStr)
 {
         cout << "in writeInputToDbService" << endl;
+    string inputForDb;
+    inputForDb = to_string(choice);
+    if (choice >= 1 && choice <= 4)
+        inputForDb += " " + codeNamesStr;
 
-    write(DataFileDescriptorFsToDb, &choice, sizeof(choice));
-    usleep(10);
+    int inputForDbSize = strlen(inputForDb.c_str()) + 1;
+    write(DataFileDescriptorFsToDb, &inputForDbSize, sizeof(inputForDbSize));
+    write(DataFileDescriptorFsToDb, inputForDb.c_str(), inputForDbSize);
+
+    /* //write(DataFileDescriptorFsToDb, &choice, sizeof(choice));
+    //usleep(10);
 
     if(choice >= 1 && choice <= 4)
     {
@@ -76,7 +86,7 @@ void writeInputToDbService(int DataFileDescriptorFsToDb, int choice, vector<stri
 
             usleep(10);
         }
-    }
+    } */
 }
 
 
@@ -94,7 +104,19 @@ void readOutputFromDbAndPrint(int DataFileDescriptorDbToFs)
     {
         ssize_t byteRead = read(DataFileDescriptorDbToFs, buffer, SIZE_TO_READ);
         buffer[byteRead] = '\0';
-        cout << buffer; 
+        
+        if (buffer == dbServiceStartedStr)
+            {
+                cout << "dbService just started." << endl;
+                cout << "If you were waiting for response, the data from before may not be available." << endl;
+                cout << "Please try Again." << endl;
+
+            }
+        else if ( buffer == "ignore")
+            break;
+        else
+            cout << buffer; 
+
         resSize -= byteRead;
         memset(buffer, 0, BUFFER_SIZE);
     }
@@ -138,17 +160,17 @@ void printMenuToShowOptionalChoices()
     cout << "Please make your choice <1, 2, 3, 4, 5, 6>:" << endl;
 }
 
-void getInputForChoice(int choice, vector<string>& codeNames)
+void getInputForChoice(int choice, string& codeNamesStr)
 {
     switch(choice)
     {
-        case 1: getInputFromUser(codeNames, "Insert airports ICOA code names to fetch their data:");
+        case 1: getInputFromUser(codeNamesStr, "Insert airports ICOA code names to fetch their data:");
         break;
-        case 2: getInputFromUser(codeNames, "Insert airports ICOA code names to print incoming flights:");
+        case 2: getInputFromUser(codeNamesStr, "Insert airports ICOA code names to print incoming flights:");
         break;
-        case 3: getInputFromUser(codeNames, "Insert airports ICOA code names to print their full flight schedule:");
+        case 3: getInputFromUser(codeNamesStr, "Insert airports ICOA code names to print their full flight schedule:");
         break;
-        case 4: getInputFromUser(codeNames,"Please enter icao24 codes of aircrafts, in order to see their schedule.");
+        case 4: getInputFromUser(codeNamesStr,"Please enter icao24 codes of aircrafts, in order to see their schedule.");
         break;
     }
 }
@@ -156,16 +178,16 @@ void getInputForChoice(int choice, vector<string>& codeNames)
 
 //Takes a sentence from user, for example "this is a senetence",
 //and break it down into array of words that combine the sentence: "this", "is" "a" "sentence"
-void getInputFromUser(vector<string>& words, string message)
+void getInputFromUser(string& input, string message)
 {
     cout << message << endl;
-    string line;
-    getline(cin, line);
+    //string line;
+    getline(cin, input);
 
-    istringstream iss(line);
+    /* istringstream iss(line);
     string code;
     while (iss >> code)
-        words.push_back(code);
+        words.push_back(code); */
 }
 
 void closeAndUnlinkNamedPipes(int FileDescriptorFsToDb, int FileDescriptorDbToFs, 

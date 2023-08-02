@@ -18,28 +18,34 @@
 #define MAX_NAME_LEN 10
 #define SHUT_DOWN_CHOICE 6
 #define MAX_MSG_STARTED_OR_RUNNING 30
+#define NUM_SIGNAL_FS_STARTED -1
 
 using namespace std;
 namespace fs = std::filesystem;
 
 
 const string dbServiceStartedStr = "dbServiceStarted";
-const string dbServiceKeepsRunningStr = "dbServiceKeepsRunning";
+/* const string dbServiceKeepsRunningStr = "dbServiceKeepsRunning";
 
 const string flightsServiceStartedStr = "fsServiceStarted";
 const string flightsServiceKeepsRunningStr = "fsServiceKeepsRunning";
+ */
+void sendFsStartedSignalToDb(int DataFileDescriptorFsToDb);
+void getDbStatus(int DataFileDescriptorDbToFs);
 
 void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs);
 //void writeChoiceToDbService(int DataFileDescriptorFsToDb, int choice);
 //void writeUserInputToDb(int DataFileDescriptorFsToDb,vector<string>& codeNames);
-void writeInputToDbService(int DataFileDescriptorFsToDb, int choice, vector<string>& codeNames);
+//void writeInputToDbService(int DataFileDescriptorFsToDb, int choice, vector<string>& codeNames);
+void writeInputToDbService(int DataFileDescriptorFsToDb, int choice, string& codeNamesStr);
 
 void writeToDbThatFlightsServiceRestarted(int DataFileDescriptorFsToDb);
 void readOutputFromDbAndPrint(int DataFileDescriptorDbToFs);
 int getChoice();
 void printMenuToShowOptionalChoices();
-void getInputForChoice(int choice, vector<string>& codeNames);
-void getInputFromUser(vector<string>& words, string message);
+void getInputForChoice(int choice, string& codeNamesStr);
+//void getInputFromUser(vector<string>& words, string message);
+void getInputFromUser(string& input, string message);
 
 void closeAndUnlinkNamedPipes(int FileDescriptorFsToDb, int FileDescriptorDbToFs, 
         string namedPipeFsToDbService, string namedPipeDbToFsService);
