@@ -29,17 +29,17 @@ const string dbServiceKeepsRunningStr = "dbServiceKeepsRunning";
 const string flightsServiceStartedStr = "fsServiceStarted";
 const string flightsServiceKeepsRunningStr = "fsServiceKeepsRunning";
 
-void getDbStatusAndClearDataPipeIfRestarted(int StatusFileDescriptorDbToFs, string& dbStartedOrKeepsRunning, int DataFileDescriptorDbToFs);
+/* void getDbStatusAndClearDataPipeIfRestarted(int StatusFileDescriptorDbToFs, string& dbStartedOrKeepsRunning, int DataFileDescriptorDbToFs);
 void setNonBlockingMode(int fileDescriptor);
 void setBlockingMode(int fileDescriptor);
 void sendFsStatusToDb(int StatusFileDescriptorDbToFs, string& fsStartedOrKeepsRunning);
-
-void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs,
-                        int StatusFileDescriptorFsToDb,int StatusFileDescriptorDbToFs);
+ */
+void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs
+                        /*, int StatusFileDescriptorFsToDb,int StatusFileDescriptorDbToFs */);
 void writeChoiceToDbService(int DataFileDescriptorFsToDb, int choice);
 void writeUserInputToDb(int DataFileDescriptorFsToDb,vector<string>& codeNames);
 void writeToDbThatFlightsServiceRestarted(int DataFileDescriptorFsToDb);
-void readOutputFromDbAndPrint(int DataFileDescriptorDbToFs, int StatusFileDescriptorDbToFs);
+void readOutputFromDbAndPrint(int DataFileDescriptorDbToFs/* , int StatusFileDescriptorDbToFs */);
 int getChoice();
 void printMenuToShowOptionalChoices();
 void getInputForChoice(int choice, vector<string>& codeNames);
@@ -48,6 +48,7 @@ void getInputFromUser(vector<string>& words, string message);
 void closeAndUnlinkNamedPipes(int FileDescriptorFsToDb, int FileDescriptorDbToFs, 
         string namedPipeFsToDbService, string namedPipeDbToFsService);
 
-void closeAndUnlinkStatusPipes(int StatusFileDescriptorFsToDb,int StatusFileDescriptorDbToFs, 
+/* void closeAndUnlinkStatusPipes(int StatusFileDescriptorFsToDb,int StatusFileDescriptorDbToFs, 
         string statusPipeFsToDb, string statusPipeDbToFs);
 
+ */

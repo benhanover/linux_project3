@@ -1,7 +1,7 @@
 #include "./dbServiceFuncs.h"
 
 void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, 
-                int StatusFileDescriptorFsToDb, int StatusFileDescriptorDbToFs, bool thereIsZipFile)
+                /* int StatusFileDescriptorFsToDb, int StatusFileDescriptorDbToFs, */ bool thereIsZipFile)
 {
     cout << "in runDbService" << endl;
 
@@ -20,11 +20,11 @@ void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs,
 
     while (!gotShutDownOpcode) 
     {    
-        sendDbStatusToFs(StatusFileDescriptorDbToFs, dbStartedOrKeepsRunning, DataFileDescriptorDbToFs);
+       /*  sendDbStatusToFs(StatusFileDescriptorDbToFs, dbStartedOrKeepsRunning, DataFileDescriptorDbToFs);
         getFsStatusAndClearDataPipeIfRestarted(StatusFileDescriptorFsToDb,fsStartedOrKeepsRunning, DataFileDescriptorFsToDb); //, firstRunDbService);
+ */
 
-
-        int choice = readChoiceFromFlightsService(DataFileDescriptorFsToDb, StatusFileDescriptorFsToDb);
+        int choice = readChoiceFromFlightsService(DataFileDescriptorFsToDb/* , StatusFileDescriptorFsToDb */);
 
         if (choice == SHUT_DOWN_CHOICE)
         {
@@ -36,7 +36,7 @@ void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs,
         {
             string fsKeepsRunningWhenWaitingForInput;
             if(choice >= 1 && choice <= 4)
-                    readUserInputFromFlightsService(DataFileDescriptorFsToDb,codeNamesVec, StatusFileDescriptorFsToDb,fsKeepsRunningWhenWaitingForInput);
+                    readUserInputFromFlightsService(DataFileDescriptorFsToDb,codeNamesVec/* , StatusFileDescriptorFsToDb, fsKeepsRunningWhenWaitingForInput*/);
             
             bool dbLoaded = airports.isDataBaseLoaded();
             if ((choice >= 2 && choice <= 5) && dbLoaded == false) //there is no data available to execute choice 2/3/4/5
@@ -60,8 +60,9 @@ void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs,
 
 }
 
+/* 
 void getFsStatusAndClearDataPipeIfRestarted(int StatusFileDescriptorFsToDb, string& fsStartedOrKeepsRunning,
-    int DataFileDescriptorFsToDb/*, bool& firstRunDbService*/)
+    int DataFileDescriptorFsToDb, bool& firstRunDbService)
 {
 
             cout << "in getFsStatusAndClearDataPipeIfRestarted" << endl;
@@ -71,7 +72,6 @@ void getFsStatusAndClearDataPipeIfRestarted(int StatusFileDescriptorFsToDb, stri
     buffer[bytesRead] = '\0';
     
     cout <<"status of FS is: " << buffer << endl; 
-
     if (buffer == flightsServiceStartedStr)
     {
         fsStartedOrKeepsRunning = flightsServiceStartedStr;
@@ -136,9 +136,9 @@ void sendDbStatusToFs(int StatusFileDescriptorDbToFs, string& dbStartedOrKeepsRu
     }
 
 }
+ */
 
-
-int readChoiceFromFlightsService(int DataFileDescriptorFsToDb, int StatusFileDescriptorFsToDb)
+int readChoiceFromFlightsService(int DataFileDescriptorFsToDb/* , int StatusFileDescriptorFsToDb */)
 {
     cout << "in readChoiceFromFlightsService" << endl;
 
@@ -157,7 +157,7 @@ int readChoiceFromFlightsService(int DataFileDescriptorFsToDb, int StatusFileDes
     //else return 0;
 }
 
-void readUserInputFromFlightsService(int DataFileDescriptorFsToDb,vector<string>& codeNames, int StatusFileDescriptorFsToDb,  string& fsKeepsRunningWhenWaitingForInput)
+void readUserInputFromFlightsService(int DataFileDescriptorFsToDb,vector<string>& codeNames/* , int StatusFileDescriptorFsToDb,  string& fsKeepsRunningWhenWaitingForInput */)
 {
     cout << "in readUserInputFromFlightsService" << endl;
     
@@ -222,7 +222,11 @@ string getDataForParent(int choice,System& airports, vector<string> codeNames)
         break;
         case 4: result = printAllAircraftsFlights(airports, codeNames);
         break;
-        case 5: zipDataBase(airports);
+        case 5:
+        {
+            zipDataBase(airports);
+            result = "Successfully zipped the directory.\n";
+        }
         break;
     }
     return result;
@@ -346,7 +350,7 @@ void closeAndUnlinkNamedPipes(int DataFileDescriptorFsToDb, int DataFileDescript
     unlink(namedPipeDbToFsService.c_str());
     
 }
-
+/* 
 void createStatusPipes(string& statusPipeFsToDb, string& statusPipeDbToFs)
 {
   cout << "in createStatusPipes" << endl;
@@ -378,4 +382,4 @@ void closeAndUnlinkStatusPipes(int StatusFileDescriptorFsToDb,int StatusFileDesc
     unlink(statusPipeFsToDb.c_str());
     unlink(statusPipeDbToFs.c_str());
     
-}
+} */

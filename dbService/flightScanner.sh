@@ -5,7 +5,6 @@ yesterday=$(date +%s --date="yesterday")
 
 success=0
 
-cd /tmp/flights_pipes
 mkdir DB
 cd DB
 
@@ -35,5 +34,7 @@ for ICAO in $@; do
         cd ../
     fi
 done
+
+cd ..
 
 exit $success   # Return the value of 'success' as the exit code

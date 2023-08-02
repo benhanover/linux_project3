@@ -1,8 +1,8 @@
 # include "flightsServiceFuncs.h"
 
 
-void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs,
-                       int StatusFileDescriptorFsToDb,int StatusFileDescriptorDbToFs)
+void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs
+                       /* ,int StatusFileDescriptorFsToDb,int StatusFileDescriptorDbToFs */)
 {
     cout << "in runFlightsService" << endl;
 
@@ -14,9 +14,9 @@ void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs
 
     while (!gotShutDownOpcode)  
     {    
-        sendFsStatusToDb(StatusFileDescriptorFsToDb, fsStartedOrKeepsRunning);
+        /* sendFsStatusToDb(StatusFileDescriptorFsToDb, fsStartedOrKeepsRunning);
         getDbStatusAndClearDataPipeIfRestarted(StatusFileDescriptorDbToFs, dbStartedOrKeepsRunning, DataFileDescriptorDbToFs);
-
+ */
         vector<string> codeNames;
         string output;
 
@@ -36,14 +36,18 @@ void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs
                 getInputForChoice(choice, codeNames);
                 
                 writeUserInputToDb(DataFileDescriptorFsToDb, codeNames);
+
+                if (choice == 1)
+                    cout << "Sent request to dbService. Waiting for response." << endl;
+                    cout << "It might take some time. Please be patient." << endl << endl;
             }
             
-            readOutputFromDbAndPrint(DataFileDescriptorDbToFs, StatusFileDescriptorDbToFs);
+            readOutputFromDbAndPrint(DataFileDescriptorDbToFs/* , StatusFileDescriptorDbToFs */);
         }
     
     }
 }
-
+/* 
 void getDbStatusAndClearDataPipeIfRestarted(int StatusFileDescriptorDbToFs, string& dbStartedOrKeepsRunning, int DataFileDescriptorDbToFs)
 {
     cout << "in getDbStatusAndClearDataPipeIfRestarted" << endl;
@@ -118,7 +122,7 @@ void sendFsStatusToDb(int StatusFileDescriptorFsToDb, string& fsStartedOrKeepsRu
     }
 }
 
-
+ */
 void writeChoiceToDbService(int DataFileDescriptorFsToDb, int choice)
 {
         cout << "in writeChoiceToDbService" << endl;
@@ -145,7 +149,7 @@ void writeUserInputToDb(int DataFileDescriptorFsToDb,vector<string>& codeNames)
 }
 
 
-void readOutputFromDbAndPrint(int DataFileDescriptorDbToFs, int StatusFileDescriptorDbToFs)
+void readOutputFromDbAndPrint(int DataFileDescriptorDbToFs/* , int StatusFileDescriptorDbToFs */)
 {
 
         cout << "in readOutputFromDbAndPrint" << endl;
@@ -258,7 +262,7 @@ void closeAndUnlinkNamedPipes(int FileDescriptorFsToDb, int FileDescriptorDbToFs
     
 }
 
-
+/* 
 void closeAndUnlinkStatusPipes(int StatusFileDescriptorFsToDb,int StatusFileDescriptorDbToFs, 
         string statusPipeFsToDb, string statusPipeDbToFs)
 {
@@ -271,4 +275,4 @@ void closeAndUnlinkStatusPipes(int StatusFileDescriptorFsToDb,int StatusFileDesc
     unlink(statusPipeFsToDb.c_str());
     unlink(statusPipeDbToFs.c_str());
     
-}
+} */

@@ -12,3 +12,5 @@ for dir in "$@"; do
     fi
 
 done
+
+cd ..

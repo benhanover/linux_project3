@@ -208,11 +208,11 @@ void System::getAllPaths(vector<string>& paths)
 
     cout << "in getAllPaths" << endl;
 
-    fs::path NamedPipePath = "/tmp/flights_pipes";
+    fs::path workingDirPath = "/app";
     
-    cout << "current path is:" << (NamedPipePath) << endl;
+    cout << "current path is:" << (workingDirPath) << endl;
 
-    for (const auto& entry : fs::recursive_directory_iterator(NamedPipePath))
+    for (const auto& entry : fs::recursive_directory_iterator(workingDirPath))
     {
         if (fs::is_directory(entry.path()))
         {   // Skip directories
