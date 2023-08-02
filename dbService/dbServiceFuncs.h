@@ -29,16 +29,10 @@ const string dbServiceKeepsRunningStr = "dbServiceKeepsRunning";
 const string flightsServiceStartedStr = "fsServiceStarted";
 const string flightsServiceKeepsRunningStr = "fsServiceKeepsRunning";
 
-void getFsStatusAndClearDataPipeIfRestarted(int StatusFileDescriptorFsToDb, string& fsStartedOrKeepsRunning, int DataFileDescriptorFsToDb /*, bool& firstRunDbService*/);
-void setNonBlockingMode(int fileDescriptor);
-void setBlockingMode(int fileDescriptor);
-void sendDbStatusToFs(int StatusFileDescriptorDbToFs, string& dbStartedOrKeepsRunning, int DataFileDescriptorDbToFs);
+void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, bool thereIsZipFile);
 
-void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, 
-                /* int StatusFileDescriptorFsToDb, int StatusFileDescriptorDbToFs, */ bool thereIsZipFile);
-
-int readChoiceFromFlightsService(int FileDescriptorFsToDb/* ,  int StatusFileDescriptorFsToDb */);
-void readUserInputFromFlightsService(int FileDescriptorFsToDb,vector<string>& codeNames/* , int StatusFileDescriptorFsToDb, string& fsKeepsRunningWhenWaitingForInput */);
+int readChoiceFromFlightsService(int FileDescriptorFsToDb);
+void readUserInputFromFlightsService(int FileDescriptorFsToDb,vector<string>& codeNames);
 void writeOutputToFlightsService(int FileDescriptorDbToFs, string outputStr);
 string getDataForParent(int choice,System& airports, vector<string> codeNames);
 void unzipDB(bool& thereIsZipFile);
@@ -47,6 +41,3 @@ void createNamedPipes(string& namedPipeFsToDbService, string& namedPipeDbToFsSer
 void closeAndUnlinkNamedPipes(int FileDescriptorFsToDb, int FileDescriptorDbToFs, 
         string namedPipeFsToDbService, string namedPipeDbToFsService);
 
-/* void createStatusPipes(string& statusPipeFsToDb, string& statusPipeDbToFs);
-void closeAndUnlinkStatusPipes(int StatusFileDescriptorFsToDb,int StatusFileDescriptorDbToFs, 
-        string statusPipeFsToDb, string statusPipeDbToFs); */

@@ -10,28 +10,16 @@ int main()
     int DataFileDescriptorDbToFs = open(namedPipeDbToFsService.c_str(), O_RDWR);
 
 
-    /* string statusPipeFsToDb, statusPipeDbToFs;
-    createStatusPipes(statusPipeFsToDb,statusPipeDbToFs);
-
-    int StatusFileDescriptorFsToDb = open(statusPipeFsToDb.c_str(), O_RDWR);
-    int StatusFileDescriptorDbToFs = open(statusPipeDbToFs.c_str(), O_RDWR);
- */
-
     bool thereIsZipFile;
     unzipDB(thereIsZipFile);
 
 
-    runDbService(DataFileDescriptorFsToDb, DataFileDescriptorDbToFs,
-            /* StatusFileDescriptorFsToDb,StatusFileDescriptorDbToFs, */ thereIsZipFile);
+    runDbService(DataFileDescriptorFsToDb, DataFileDescriptorDbToFs, thereIsZipFile);
 
 
     closeAndUnlinkNamedPipes(DataFileDescriptorFsToDb, DataFileDescriptorDbToFs, 
         namedPipeFsToDbService, namedPipeDbToFsService);
 
-   /*  closeAndUnlinkStatusPipes(StatusFileDescriptorFsToDb, StatusFileDescriptorDbToFs, 
-        statusPipeFsToDb, statusPipeDbToFs);
-    */
-
-    exit(0);
+       exit(0);
 }
 

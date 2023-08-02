@@ -25,7 +25,7 @@ bool checkIfAllAircraftsInDB(System& airports, vector<string>& missing_names, ve
 
 
 //--------------------------mission 5------------------------------
-void zipDataBase(System& airports);
+string zipDataBase(System& airports);
 
 
 //--------------------------mission 6------------------------------

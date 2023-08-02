@@ -1,7 +1,6 @@
 #include "./dbServiceFuncs.h"
 
-void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, 
-                /* int StatusFileDescriptorFsToDb, int StatusFileDescriptorDbToFs, */ bool thereIsZipFile)
+void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, bool thereIsZipFile)
 {
     cout << "in runDbService" << endl;
 
@@ -20,11 +19,8 @@ void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs,
 
     while (!gotShutDownOpcode) 
     {    
-       /*  sendDbStatusToFs(StatusFileDescriptorDbToFs, dbStartedOrKeepsRunning, DataFileDescriptorDbToFs);
-        getFsStatusAndClearDataPipeIfRestarted(StatusFileDescriptorFsToDb,fsStartedOrKeepsRunning, DataFileDescriptorFsToDb); //, firstRunDbService);
- */
-
-        int choice = readChoiceFromFlightsService(DataFileDescriptorFsToDb/* , StatusFileDescriptorFsToDb */);
+       
+        int choice = readChoiceFromFlightsService(DataFileDescriptorFsToDb);
 
         if (choice == SHUT_DOWN_CHOICE)
         {
@@ -36,7 +32,7 @@ void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs,
         {
             string fsKeepsRunningWhenWaitingForInput;
             if(choice >= 1 && choice <= 4)
-                    readUserInputFromFlightsService(DataFileDescriptorFsToDb,codeNamesVec/* , StatusFileDescriptorFsToDb, fsKeepsRunningWhenWaitingForInput*/);
+                    readUserInputFromFlightsService(DataFileDescriptorFsToDb,codeNamesVec);
             
             bool dbLoaded = airports.isDataBaseLoaded();
             if ((choice >= 2 && choice <= 5) && dbLoaded == false) //there is no data available to execute choice 2/3/4/5
@@ -49,143 +45,48 @@ void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs,
             }
             else
             {   
-              // if (fsKeepsRunningWhenWaitingForInput == flightsServiceKeepsRunningStr)
-                    outputStr = getDataForParent(choice, airports, codeNamesVec);
+                outputStr = getDataForParent(choice, airports, codeNamesVec);
             }
 
-            //if (fsKeepsRunningWhenWaitingForInput == flightsServiceKeepsRunningStr)
-                    writeOutputToFlightsService(DataFileDescriptorDbToFs, outputStr);
+                writeOutputToFlightsService(DataFileDescriptorDbToFs, outputStr);
         }
     }
 
 }
 
-/* 
-void getFsStatusAndClearDataPipeIfRestarted(int StatusFileDescriptorFsToDb, string& fsStartedOrKeepsRunning,
-    int DataFileDescriptorFsToDb, bool& firstRunDbService)
-{
 
-            cout << "in getFsStatusAndClearDataPipeIfRestarted" << endl;
-
-    char buffer[MAX_MSG_STARTED_OR_RUNNING];
-    ssize_t bytesRead = read(StatusFileDescriptorFsToDb, buffer, sizeof(buffer));
-    buffer[bytesRead] = '\0';
-    
-    cout <<"status of FS is: " << buffer << endl; 
-    if (buffer == flightsServiceStartedStr)
-    {
-        fsStartedOrKeepsRunning = flightsServiceStartedStr;
-        setNonBlockingMode(DataFileDescriptorFsToDb);
-        
-        //clearing named Pipe Fs To Db, to avoid old data if present in the data pipe
-        char buffer[SIZE_TO_READ];
-        int resSize;
-        ssize_t byteRead;
-
-        do
-        {
-                        cout << "in clearDataLoop" << endl;
-
-           byteRead = read(DataFileDescriptorFsToDb, buffer, SIZE_TO_READ);
-        }
-        while (byteRead > 0 || !(byteRead == -1 && errno == EAGAIN));
-
-        setBlockingMode(DataFileDescriptorFsToDb);
-    }
-    else 
-    {
-        fsStartedOrKeepsRunning = flightsServiceKeepsRunningStr;
-    }
-
-}
-
-void setNonBlockingMode(int fileDescriptor)
-{
-    int flags = fcntl(fileDescriptor, F_GETFL, 0);
-    fcntl(fileDescriptor, F_SETFL, flags | O_NONBLOCK);
-}
-
-void setBlockingMode(int fileDescriptor)
-{
-    int flags = fcntl(fileDescriptor, F_GETFL, 0);
-    flags &= ~O_NONBLOCK; // Clear the O_NONBLOCK flag
-    fcntl(fileDescriptor, F_SETFL, flags);
-}
-
-void sendDbStatusToFs(int StatusFileDescriptorDbToFs, string& dbStartedOrKeepsRunning, int DataFileDescriptorDbToFs)
-{ 
-
-            cout << "in sendDbStatusToFs" << endl;
-
-    int statusStrSize;
-
-    if (dbStartedOrKeepsRunning == dbServiceStartedStr)
-    {
-        statusStrSize = strlen(dbServiceStartedStr.c_str()) + 1;
-        write(StatusFileDescriptorDbToFs, dbServiceStartedStr.c_str(), statusStrSize);
-        
-        string outputStr = "Notice: dbService Program Just started. Ignoring old Data sent from dbService.\n\n";
-        writeOutputToFlightsService(DataFileDescriptorDbToFs, outputStr);
-
-        dbStartedOrKeepsRunning = dbServiceKeepsRunningStr; //update for next, from now it will send it keeps running
-    }
-    else  //dbService did not just started, it keeps running, send info to FlightsService
-    {
-        statusStrSize = strlen(dbServiceKeepsRunningStr.c_str()) + 1;
-        write(StatusFileDescriptorDbToFs, dbServiceKeepsRunningStr.c_str(), statusStrSize);
-    }
-
-}
- */
-
-int readChoiceFromFlightsService(int DataFileDescriptorFsToDb/* , int StatusFileDescriptorFsToDb */)
+int readChoiceFromFlightsService(int DataFileDescriptorFsToDb)
 {
     cout << "in readChoiceFromFlightsService" << endl;
 
-    /*setNonBlockingMode(StatusFileDescriptorFsToDb);
-    string fsStartedOrKeepsRunning;
-    getFsStatusAndClearDataPipeIfRestarted(StatusFileDescriptorFsToDb,fsStartedOrKeepsRunning, DataFileDescriptorFsToDb);
-    setBlockingMode(StatusFileDescriptorFsToDb);
+    int choice;
+    read(DataFileDescriptorFsToDb, &choice, sizeof(choice));
+    cout << "got choice:  " << choice << endl;
+    return choice;
 
-    if (fsStartedOrKeepsRunning == flightsServiceKeepsRunningStr)
-    {*/
-        int choice;
-        read(DataFileDescriptorFsToDb, &choice, sizeof(choice));
-        cout << "got choice:  " << choice << endl;
-        return choice;
-   // }
-    //else return 0;
 }
 
-void readUserInputFromFlightsService(int DataFileDescriptorFsToDb,vector<string>& codeNames/* , int StatusFileDescriptorFsToDb,  string& fsKeepsRunningWhenWaitingForInput */)
+void readUserInputFromFlightsService(int DataFileDescriptorFsToDb,vector<string>& codeNames)
 {
     cout << "in readUserInputFromFlightsService" << endl;
     
-    /*setNonBlockingMode(StatusFileDescriptorFsToDb);
-    getFsStatusAndClearDataPipeIfRestarted(StatusFileDescriptorFsToDb,fsKeepsRunningWhenWaitingForInput, DataFileDescriptorFsToDb);
-    setBlockingMode(StatusFileDescriptorFsToDb);
+    int vectorSize;
+    ssize_t bytesRead = read(DataFileDescriptorFsToDb, &vectorSize, sizeof(vectorSize));
+    codeNames.clear();
+    codeNames.reserve(vectorSize);
 
-
-    if (fsKeepsRunningWhenWaitingForInput == flightsServiceKeepsRunningStr)
-    {*/
-        int vectorSize;
-        ssize_t bytesRead = read(DataFileDescriptorFsToDb, &vectorSize, sizeof(vectorSize));
-        codeNames.clear();
-        codeNames.reserve(vectorSize);
-
-        char buffer[MAX_NAME_LEN];
-        for (int i = 0; i < vectorSize; ++i)
+    char buffer[MAX_NAME_LEN];
+    for (int i = 0; i < vectorSize; ++i)
+    {
+        bytesRead = read(DataFileDescriptorFsToDb, buffer, sizeof(buffer));
+        if (bytesRead > 0)
         {
-            bytesRead = read(DataFileDescriptorFsToDb, buffer, sizeof(buffer));
-            if (bytesRead > 0)
-            {
-                buffer[bytesRead] = '\0';
-                codeNames.emplace_back(buffer);
-                cout << "Got this code" << buffer << endl;
-            }
-            memset(buffer, 0, sizeof(buffer));
-        }   
-   // }
+            buffer[bytesRead] = '\0';
+            codeNames.emplace_back(buffer);
+            cout << "Got this code" << buffer << endl;
+        }
+        memset(buffer, 0, sizeof(buffer));
+    }   
 }
 
 void writeOutputToFlightsService(int DataFileDescriptorDbToFs, string outputStr)
@@ -211,9 +112,9 @@ string getDataForParent(int choice,System& airports, vector<string> codeNames)
         {
            fetchedAll = fetchAirportsData(airports, codeNames);
            if (fetchedAll)
-                result = "The system fetched all data.\n";
+                result = "The system fetched all data.\n\n";
             else 
-                result = "The system could not fetch all data. You can try again with different ICAO codes.\n";
+                result = "The system could not fetch all data. You can try again with different ICAO codes.\n\n";
         }
         break;
         case 2: result = printAirportsArv(airports, codeNames);
@@ -222,11 +123,7 @@ string getDataForParent(int choice,System& airports, vector<string> codeNames)
         break;
         case 4: result = printAllAircraftsFlights(airports, codeNames);
         break;
-        case 5:
-        {
-            zipDataBase(airports);
-            result = "Successfully zipped the directory.\n";
-        }
+        case 5:  result = zipDataBase(airports);
         break;
     }
     return result;
@@ -350,36 +247,3 @@ void closeAndUnlinkNamedPipes(int DataFileDescriptorFsToDb, int DataFileDescript
     unlink(namedPipeDbToFsService.c_str());
     
 }
-/* 
-void createStatusPipes(string& statusPipeFsToDb, string& statusPipeDbToFs)
-{
-  cout << "in createStatusPipes" << endl;
-
-    
-    string namedPipeDirPath = "/tmp/flights_pipes";
-    // Create namedPipe directory manually
-    fs::create_directory(namedPipeDirPath);
-    chmod(namedPipeDirPath.c_str(), 0777);
-
-    statusPipeFsToDb = "/tmp/flights_pipes/statusPipeFlightsServiceToDbService";
-    statusPipeDbToFs = "/tmp/flights_pipes/statusPipeDbServiceToFlightsService";
-
-    mkfifo(statusPipeFsToDb.c_str(), 0666);
-    mkfifo(statusPipeDbToFs.c_str(), 0666);
-
-
-}
-
-void closeAndUnlinkStatusPipes(int StatusFileDescriptorFsToDb,int StatusFileDescriptorDbToFs, 
-        string statusPipeFsToDb, string statusPipeDbToFs)
-{
-
-                cout << "in closeAndUnlinkStatusPipes" << endl;
-
-    close(StatusFileDescriptorFsToDb);
-    close(StatusFileDescriptorDbToFs);
-
-    unlink(statusPipeFsToDb.c_str());
-    unlink(statusPipeDbToFs.c_str());
-    
-} */
