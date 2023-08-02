@@ -48,6 +48,8 @@ void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs
 
 void sendFsStartedSignalToDb(int DataFileDescriptorFsToDb)
 {
+            cout << "in sendFsStartedSignalToDb" << endl;
+
     int numSignal = NUM_SIGNAL_FS_STARTED;
     string emptyStr = "";
     writeInputToDbService(DataFileDescriptorFsToDb, numSignal, emptyStr);
@@ -56,6 +58,8 @@ void sendFsStartedSignalToDb(int DataFileDescriptorFsToDb)
 
 void getDbStatus(int DataFileDescriptorDbToFs)
 {
+        cout << "in getDbStatus" << endl;
+
     readOutputFromDbAndPrint(DataFileDescriptorDbToFs);
 }
 
@@ -72,21 +76,6 @@ void writeInputToDbService(int DataFileDescriptorFsToDb, int choice, string& cod
     write(DataFileDescriptorFsToDb, &inputForDbSize, sizeof(inputForDbSize));
     write(DataFileDescriptorFsToDb, inputForDb.c_str(), inputForDbSize);
 
-    /* //write(DataFileDescriptorFsToDb, &choice, sizeof(choice));
-    //usleep(10);
-
-    if(choice >= 1 && choice <= 4)
-    {
-        int vectorSize = codeNames.size();
-        write(DataFileDescriptorFsToDb, &vectorSize, sizeof(vectorSize));
-        for (const auto& name : codeNames)
-        {
-            write(DataFileDescriptorFsToDb, name.c_str(), name.size() + 1);  // Include null terminator
-                    cout << "writing to DB: " << name << endl;
-
-            usleep(10);
-        }
-    } */
 }
 
 
@@ -112,9 +101,7 @@ void readOutputFromDbAndPrint(int DataFileDescriptorDbToFs)
                 cout << "Please try Again." << endl;
 
             }
-        else if ( buffer == "ignore")
-            break;
-        else
+        else 
             cout << buffer; 
 
         resSize -= byteRead;

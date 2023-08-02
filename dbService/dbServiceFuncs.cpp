@@ -9,15 +9,9 @@ void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, boo
     bool gotShutDownOpcode = false;
     vector<string> codeNamesVec;
     string outputStr;
-    /* 
-    string dbStartedOrKeepsRunning = dbServiceStartedStr; //the first time it is defined, the program started or restarted
-    string fsStartedOrKeepsRunning;
-    bool firstRunDbService =true;
- */
+    
     if (thereIsZipFile)
         airports.load_db();
-
-    //sendToFSThatDbStarted(DataFileDescriptorDbToFs);
 
     int fsSignal;
     sendDbStartedStrToFs(DataFileDescriptorDbToFs);
@@ -31,13 +25,19 @@ void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, boo
 
     while (!gotShutDownOpcode) 
     {    
-        choice = 0;
         if (dbJustRestarted) //if there was input in pipe before restart - skip this iteration
         {
             dbJustRestarted = false;
-            string ignore = "ignore";
-            writeOutputToFlightsService(DataFileDescriptorDbToFs, ignore);
+            string errorMsg = "Error, please try again.\n";
+            writeOutputToFlightsService(DataFileDescriptorDbToFs, errorMsg);
 
+        }
+        else if (choice == NUM_SIGNAL_FS_STARTED)
+        {
+            cout << "got signal FS just started. sending msg to pipe" << endl;
+            string dbKeepsRunningMsg = "dbService keeps running and waiting for requests.\n";
+            writeOutputToFlightsService(DataFileDescriptorDbToFs, dbKeepsRunningMsg);
+            choice = 0;
         }
         else
         {  
@@ -77,29 +77,9 @@ void sendDbStartedStrToFs(int DataFileDescriptorDbToFs)
 void getFsStatus(int DataFileDescriptorFsToDb, int& fsSignal, vector<string>& codeNamesVec)
 {
     readInputFromFlightsService(DataFileDescriptorFsToDb, fsSignal,codeNamesVec);
-    //read(DataFileDescriptorFsToDb, &fsSignal, sizeof(fsSignal));
     
     cout << "got FS Status/num:  " << fsSignal << endl;
-/* 
-    if (fsSignal >= 1 && fsSignal <= 4) // ignore old request - read code from the pipe and ignore it
-    {
-        cout << "In getFsStatus loop to read old codes" << endl;
 
-        int vectorSize;
-        ssize_t bytesRead = read(DataFileDescriptorFsToDb, &vectorSize, sizeof(vectorSize));
-       
-        char buffer[MAX_NAME_LEN];
-        for (int i = 0; i < vectorSize; ++i)
-        {
-            bytesRead = read(DataFileDescriptorFsToDb, buffer, sizeof(buffer));
-            if (bytesRead > 0)
-            {
-                buffer[bytesRead] = '\0';
-                cout << "Got this code" << buffer << endl;
-            }
-            memset(buffer, 0, sizeof(buffer));
-        }   
-    } */
 }
 
 
@@ -119,6 +99,8 @@ void readInputFromFlightsService(int DataFileDescriptorFsToDb,int& choice, vecto
     // Read the number from the stream
     iss >> choice;
 
+    cout << "got choice: " << choice << endl;
+
     // Read the words from the stream and store them in the vector
     string singleCode;
     codeNames.clear();
@@ -127,30 +109,6 @@ void readInputFromFlightsService(int DataFileDescriptorFsToDb,int& choice, vecto
         codeNames.push_back(singleCode);
     }
 
-/* 
-    read(DataFileDescriptorFsToDb, &choice, sizeof(choice));
-    cout << "got choice:  " << choice << endl;
-
-    if(choice >= 1 && choice <= 4)
-    {
-        int vectorSize;
-        ssize_t bytesRead = read(DataFileDescriptorFsToDb, &vectorSize, sizeof(vectorSize));
-        codeNames.clear();
-        codeNames.reserve(vectorSize);
-
-        char buffer[MAX_NAME_LEN];
-        for (int i = 0; i < vectorSize; ++i)
-        {
-            bytesRead = read(DataFileDescriptorFsToDb, buffer, sizeof(buffer));
-            if (bytesRead > 0)
-            {
-                buffer[bytesRead] = '\0';
-                codeNames.emplace_back(buffer);
-                cout << "Got this code" << buffer << endl;
-            }
-            memset(buffer, 0, sizeof(buffer));
-        }   
-    } */
 }
 
 void writeOutputToFlightsService(int DataFileDescriptorDbToFs, string outputStr)
