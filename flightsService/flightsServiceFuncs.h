@@ -30,8 +30,10 @@ const string flightsServiceStartedStr = "fsServiceStarted";
 const string flightsServiceKeepsRunningStr = "fsServiceKeepsRunning";
 
 void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs);
-void writeChoiceToDbService(int DataFileDescriptorFsToDb, int choice);
-void writeUserInputToDb(int DataFileDescriptorFsToDb,vector<string>& codeNames);
+//void writeChoiceToDbService(int DataFileDescriptorFsToDb, int choice);
+//void writeUserInputToDb(int DataFileDescriptorFsToDb,vector<string>& codeNames);
+void writeInputToDbService(int DataFileDescriptorFsToDb, int choice, vector<string>& codeNames);
+
 void writeToDbThatFlightsServiceRestarted(int DataFileDescriptorFsToDb);
 void readOutputFromDbAndPrint(int DataFileDescriptorDbToFs);
 int getChoice();

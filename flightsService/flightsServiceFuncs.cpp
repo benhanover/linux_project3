@@ -19,54 +19,63 @@ void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs
 
         choice = getChoice();
             cout << "got choice and sending to dbService: " << choice << endl;
-
         
-        writeChoiceToDbService(DataFileDescriptorFsToDb, choice);
+        if(choice >= 1 && choice <= 4)
+                getInputForChoice(choice, codeNames);
+        
+        writeInputToDbService(DataFileDescriptorFsToDb, choice, codeNames);
 
-        if (choice == SHUT_DOWN_CHOICE) {
+        if (choice == SHUT_DOWN_CHOICE)
             gotShutDownOpcode = true;
-        }
-        else {
-
+        
+/* 
             if(choice >= 1 && choice <= 4)
             {
-                getInputForChoice(choice, codeNames);
                 
                 writeUserInputToDb(DataFileDescriptorFsToDb, codeNames);
+ */
+        if (choice == 1)
+        {
+            cout << "Sent request to dbService. Waiting for response." << endl;
+            cout << "It might take some time. Please be patient." << endl << endl;
+        }      
 
-                if (choice == 1)
-                    cout << "Sent request to dbService. Waiting for response." << endl;
-                    cout << "It might take some time. Please be patient." << endl << endl;
-            }
-            
-            readOutputFromDbAndPrint(DataFileDescriptorDbToFs);
-        }
+        readOutputFromDbAndPrint(DataFileDescriptorDbToFs);
     
     }
+
+    cout << "Shutting down flightsService." << endl;
 }
 
-void writeChoiceToDbService(int DataFileDescriptorFsToDb, int choice)
+       // writeInputToDbService(DataFileDescriptorFsToDb, choice, codeNames);
+
+
+/* void writeChoiceToDbService(int DataFileDescriptorFsToDb, int choice)
 {
         cout << "in writeChoiceToDbService" << endl;
+
+    
+
+}
+ */
+void writeInputToDbService(int DataFileDescriptorFsToDb, int choice, vector<string>& codeNames)
+{
+        cout << "in writeInputToDbService" << endl;
 
     write(DataFileDescriptorFsToDb, &choice, sizeof(choice));
     usleep(10);
 
-}
-
-void writeUserInputToDb(int DataFileDescriptorFsToDb,vector<string>& codeNames)
-{
-        cout << "in writeUserInputToDb" << endl;
-
-
-    int vectorSize = codeNames.size();
-    write(DataFileDescriptorFsToDb, &vectorSize, sizeof(vectorSize));
-    for (const auto& name : codeNames)
+    if(choice >= 1 && choice <= 4)
     {
-        write(DataFileDescriptorFsToDb, name.c_str(), name.size() + 1);  // Include null terminator
-                cout << "writing to DB: " << name << endl;
+        int vectorSize = codeNames.size();
+        write(DataFileDescriptorFsToDb, &vectorSize, sizeof(vectorSize));
+        for (const auto& name : codeNames)
+        {
+            write(DataFileDescriptorFsToDb, name.c_str(), name.size() + 1);  // Include null terminator
+                    cout << "writing to DB: " << name << endl;
 
-        usleep(10);
+            usleep(10);
+        }
     }
 }
 

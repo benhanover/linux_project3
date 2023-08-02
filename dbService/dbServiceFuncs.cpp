@@ -17,23 +17,21 @@ void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, boo
     if (thereIsZipFile)
         airports.load_db();
 
+    //sendToFSThatDbStarted(DataFileDescriptorDbToFs);
+
     while (!gotShutDownOpcode) 
     {    
        
-        int choice = readChoiceFromFlightsService(DataFileDescriptorFsToDb);
+        readInputFromFlightsService(DataFileDescriptorFsToDb, choice, codeNamesVec);
 
         if (choice == SHUT_DOWN_CHOICE)
         {
-            
-            gracefulExit(airports);
+            outputStr = gracefulExit(airports);
+            writeOutputToFlightsService(DataFileDescriptorDbToFs, outputStr);
             gotShutDownOpcode = true;
         }
         else
         {
-            string fsKeepsRunningWhenWaitingForInput;
-            if(choice >= 1 && choice <= 4)
-                    readUserInputFromFlightsService(DataFileDescriptorFsToDb,codeNamesVec);
-            
             bool dbLoaded = airports.isDataBaseLoaded();
             if ((choice >= 2 && choice <= 5) && dbLoaded == false) //there is no data available to execute choice 2/3/4/5
             {
@@ -66,27 +64,33 @@ int readChoiceFromFlightsService(int DataFileDescriptorFsToDb)
 
 }
 
-void readUserInputFromFlightsService(int DataFileDescriptorFsToDb,vector<string>& codeNames)
+void readInputFromFlightsService(int DataFileDescriptorFsToDb,int& choice, vector<string>& codeNames)
 {
-    cout << "in readUserInputFromFlightsService" << endl;
+    cout << "in readInputFromFlightsService" << endl;
     
-    int vectorSize;
-    ssize_t bytesRead = read(DataFileDescriptorFsToDb, &vectorSize, sizeof(vectorSize));
-    codeNames.clear();
-    codeNames.reserve(vectorSize);
+    read(DataFileDescriptorFsToDb, &choice, sizeof(choice));
+    cout << "got choice:  " << choice << endl;
 
-    char buffer[MAX_NAME_LEN];
-    for (int i = 0; i < vectorSize; ++i)
+    if(choice >= 1 && choice <= 4)
     {
-        bytesRead = read(DataFileDescriptorFsToDb, buffer, sizeof(buffer));
-        if (bytesRead > 0)
+        int vectorSize;
+        ssize_t bytesRead = read(DataFileDescriptorFsToDb, &vectorSize, sizeof(vectorSize));
+        codeNames.clear();
+        codeNames.reserve(vectorSize);
+
+        char buffer[MAX_NAME_LEN];
+        for (int i = 0; i < vectorSize; ++i)
         {
-            buffer[bytesRead] = '\0';
-            codeNames.emplace_back(buffer);
-            cout << "Got this code" << buffer << endl;
-        }
-        memset(buffer, 0, sizeof(buffer));
-    }   
+            bytesRead = read(DataFileDescriptorFsToDb, buffer, sizeof(buffer));
+            if (bytesRead > 0)
+            {
+                buffer[bytesRead] = '\0';
+                codeNames.emplace_back(buffer);
+                cout << "Got this code" << buffer << endl;
+            }
+            memset(buffer, 0, sizeof(buffer));
+        }   
+    }
 }
 
 void writeOutputToFlightsService(int DataFileDescriptorDbToFs, string outputStr)

@@ -29,4 +29,4 @@ string zipDataBase(System& airports);
 
 
 //--------------------------mission 6------------------------------
-void gracefulExit(System& airports);
+string gracefulExit(System& airports);

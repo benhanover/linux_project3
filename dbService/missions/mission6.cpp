@@ -2,7 +2,7 @@
 
 
 
-void gracefulExit(System& airports)
+string gracefulExit(System& airports)
 {
     zipDataBase(airports);
     
@@ -24,4 +24,8 @@ void gracefulExit(System& airports)
     }*/
 
     airports.deleteAll(); //free all allocated memory
+
+    string dbFinishedStr = "dbService finished and shutdown successfully.\n";
+
+    return dbFinishedStr;
 }
