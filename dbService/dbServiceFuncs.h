@@ -27,15 +27,9 @@ namespace fs = std::filesystem;
 const string dbServiceStartedStr = "dbServiceStarted";
 
 void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, bool thereIsZipFile);
-void readInputFromFlightsService(int DataFileDescriptorFsToDb,int& choice, vector<string>& codeNames);
-
 void sendDbStartedStrToFs(int DataFileDescriptorDbToFs);
-//void getFsStatus(int DataFileDescriptorFsToDb);
-
 void getFsStatus(int DataFileDescriptorFsToDb, int& fsSignal, vector<string>& codeNamesVec);
-
-//int readChoiceFromFlightsService(int FileDescriptorFsToDb);
-//void readUserInputFromFlightsService(int FileDescriptorFsToDb,vector<string>& codeNames);
+void readInputFromFlightsService(int DataFileDescriptorFsToDb,int& choice, vector<string>& codeNames);
 void writeOutputToFlightsService(int FileDescriptorDbToFs, string outputStr);
 string getDataForParent(int choice,System& airports, vector<string> codeNames);
 void unzipDB(bool& thereIsZipFile);
@@ -44,4 +38,3 @@ void createNamedPipes(string& namedPipeFsToDbService, string& namedPipeDbToFsSer
 void closeAndUnlinkNamedPipes(int FileDescriptorFsToDb, int FileDescriptorDbToFs, 
         string namedPipeFsToDbService, string namedPipeDbToFsService);
 
-void sendToFSThatDbStarted(int DataFileDescriptorDbToFs);

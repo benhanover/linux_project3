@@ -65,7 +65,7 @@ public:
 };
 
 class FlightInfo;
-class SingleAirport /*: public System*/
+class SingleAirport
 {
 private:
     string icaoCode;
@@ -107,7 +107,7 @@ public:
 
 };
 
-class FlightInfo /*: public SingleAirport*/
+class FlightInfo
 {
     char arvOrDpt;
     int firstSeen;

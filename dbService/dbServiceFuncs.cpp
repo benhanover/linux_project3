@@ -2,8 +2,6 @@
 
 void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, bool thereIsZipFile)
 {
-    cout << "in runDbService" << endl;
-
     System airports;
     int choice;
     bool gotShutDownOpcode = false;
@@ -17,24 +15,22 @@ void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, boo
     sendDbStartedStrToFs(DataFileDescriptorDbToFs);
     getFsStatus(DataFileDescriptorFsToDb,fsSignal,codeNamesVec);
     
-    bool dbJustRestarted;
+   /*  bool dbJustRestarted;
     if (fsSignal != NUM_SIGNAL_FS_STARTED)
         dbJustRestarted = true; //at first got signal which indicates fs was running before, and sent data to dbService, so dbService also ran before
     else
         dbJustRestarted = false;
-
+ */
     while (!gotShutDownOpcode) 
-    {    
-        if (dbJustRestarted) //if there was input in pipe before restart - skip this iteration
+    {  /*   
+        if (dbJustRestarted) //if there was input in pipe before restart - skip one iteration
         {
             dbJustRestarted = false;
-            string errorMsg = "Error, please try again.\n";
-            writeOutputToFlightsService(DataFileDescriptorDbToFs, errorMsg);
-
+            //string errorMsg = "Error, please try again.\n";
+            //writeOutputToFlightsService(DataFileDescriptorDbToFs, errorMsg);
         }
-        else if (choice == NUM_SIGNAL_FS_STARTED)
+        else */ if (choice == NUM_SIGNAL_FS_STARTED)
         {
-            cout << "got signal FS just started. sending msg to pipe" << endl;
             string dbKeepsRunningMsg = "dbService keeps running and waiting for requests.\n";
             writeOutputToFlightsService(DataFileDescriptorDbToFs, dbKeepsRunningMsg);
             choice = 0;
@@ -56,8 +52,6 @@ void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, boo
                 {
                     outputStr = "Currently there is not any data in the program. Can not run choice number " + to_string(choice) + ".\n";
                     outputStr += "In order to get data, please choose option 1 and provide the desired ICAO codes.\n";
-
-                    cout << "dbService returns string that there's no data available" << endl;
                 }
                 else
                     outputStr = getDataForParent(choice, airports, codeNamesVec);
@@ -77,29 +71,20 @@ void sendDbStartedStrToFs(int DataFileDescriptorDbToFs)
 void getFsStatus(int DataFileDescriptorFsToDb, int& fsSignal, vector<string>& codeNamesVec)
 {
     readInputFromFlightsService(DataFileDescriptorFsToDb, fsSignal,codeNamesVec);
-    
-    cout << "got FS Status/num:  " << fsSignal << endl;
-
 }
-
 
 void readInputFromFlightsService(int DataFileDescriptorFsToDb,int& choice, vector<string>& codeNames)
 {
-    cout << "in readInputFromFlightsService" << endl;
-    
     char inputStr[BUFFER_SIZE];
     int resSize;
     read(DataFileDescriptorFsToDb, &resSize, sizeof(resSize));
     read(DataFileDescriptorFsToDb,inputStr, resSize);
-
     
     // Create a string stream to read from the input string
     istringstream iss(inputStr);
 
     // Read the number from the stream
     iss >> choice;
-
-    cout << "got choice: " << choice << endl;
 
     // Read the words from the stream and store them in the vector
     string singleCode;
@@ -113,9 +98,6 @@ void readInputFromFlightsService(int DataFileDescriptorFsToDb,int& choice, vecto
 
 void writeOutputToFlightsService(int DataFileDescriptorDbToFs, string outputStr)
 {
-    cout << "in writeOutputToFlightsService" << endl;
-    cout << "writing to FS:" << outputStr << endl;
-
     int outputStrSize = strlen(outputStr.c_str()) + 1;
     write(DataFileDescriptorDbToFs, &outputStrSize, sizeof(outputStrSize));
     write(DataFileDescriptorDbToFs, outputStr.c_str(), outputStrSize);
@@ -123,9 +105,6 @@ void writeOutputToFlightsService(int DataFileDescriptorDbToFs, string outputStr)
 
 string getDataForParent(int choice,System& airports, vector<string> codeNames)
 {
-    cout << "in getDataForParent" << endl;
-
-
     string result;
     bool fetchedAll;
     switch(choice)
@@ -151,18 +130,13 @@ string getDataForParent(int choice,System& airports, vector<string> codeNames)
     return result;
 }
 
-
 void unzipDB(bool& thereIsZipFile)
 {
-
-    cout << "in unzipDB" << endl;
-
-
     string zipFilePath = "/tmp/flights_pipes/DB.zip";
 
     if (!filesystem::exists(zipFilePath))
     {
-        std::cerr << "DB.zip does not exist." << std::endl;
+        //std::cerr << "DB.zip does not exist." << std::endl;
         thereIsZipFile = false;
         return;
     }
@@ -171,7 +145,7 @@ void unzipDB(bool& thereIsZipFile)
     zip_t *archive = zip_open(zipFilePath.c_str(), ZIP_RDONLY, nullptr);
     if (archive == nullptr)
     {
-        cerr << "Failed to open the ZIP file: " << zip_strerror(archive) << endl;
+        //cerr << "Failed to open the ZIP file: " << zip_strerror(archive) << endl;
         return;
     }
     
@@ -234,15 +208,10 @@ void unzipDB(bool& thereIsZipFile)
 
     zip_close(archive);
     thereIsZipFile = true;
-    cout << "Successfully unzipped the directory." << endl;
 }
 
-
 void createNamedPipes(string& namedPipeFsToDbService, string& namedPipeDbToFsService)
-{
-            cout << "in createNamedPipes" << endl;
-
-    
+{  
     string namedPipeDirPath = "/tmp/flights_pipes";
     // Create namedPipe directory manually
     fs::create_directory(namedPipeDirPath);
@@ -259,9 +228,6 @@ void createNamedPipes(string& namedPipeFsToDbService, string& namedPipeDbToFsSer
 void closeAndUnlinkNamedPipes(int DataFileDescriptorFsToDb, int DataFileDescriptorDbToFs, 
         string namedPipeFsToDbService, string namedPipeDbToFsService)
 {
-    
-                cout << "in closeAndUnlinkNamedPipes" << endl;
-
     close(DataFileDescriptorFsToDb);
     close(DataFileDescriptorDbToFs);
 

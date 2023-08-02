@@ -13,13 +13,13 @@ for ICAO in $@; do
     airportInfo=$(curl -s "https://opensky-network.org/api/airports?icao=$ICAO")
 
     if [ "$airportInfo" == "" ];  then
-        echo "script ---- $ICAO is invalid ICAO code or does not exist"
+        #echo "script: $ICAO is invalid ICAO code or does not exist"
         success=1   # Set success to 1 indicating an error occurred 
     else
-        echo "creating directory for $ICAO"
+        #echo "creating directory for $ICAO"
         mkdir "$ICAO"
         
-        echo "creating apt and dpt files for $ICAO"
+        #echo "creating apt and dpt files for $ICAO"
         cd ./"$ICAO"
         
         curl -s "https://opensky-network.org/api/flights/arrival?airport=$ICAO&begin=$yesterday&end=$today" |

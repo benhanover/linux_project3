@@ -28,16 +28,6 @@ void System::fetchDB(vector<string> airportsNamesVector, bool& fetchedAll)
     for (auto& name : airportsNamesVector) 
         airportNames += name += " ";
 
-    //fs::path currentPath = fs::current_path();
-    //fs::path scripts_path = fs::current_path().parent_path();
-
-    
-    //string s_scripts_path = scripts_path;
-    //string s_currentPath = currentPath;
-
-    /*if (chdir(s_scripts_path.c_str()) != 0) {
-        cout << "Failed to change directory.\n";
-    }*/
     string clean = "./clean.sh "; 
     string flightScanner = "./flightScanner.sh ";
 
@@ -60,25 +50,17 @@ void System::fetchDB(vector<string> airportsNamesVector, bool& fetchedAll)
         fetchedAll = true;
     else //exitStatus == 1
         fetchedAll = false;
-
-    /*if (chdir(currentPath.c_str()) != 0) {
-        std::cout << "Failed to change directory.\n";
-    }*/
-    
+   
     load_db();
 }
 
 void System::load_db()
 {
-    cout << "in Load-db function" << endl;
-
     vector<string> paths;
     paths.reserve(10);
     getAllPaths(paths);
     //for each airport there are 2 paths (apt, dpt)
     int numberOfAirports = paths.size() / 2;
-
-    cout << "numberOfAirports is : " << numberOfAirports <<endl;
 
     for (int i = 0; i < numberOfAirports; i++)
     {
@@ -132,7 +114,7 @@ void SingleAirport::updateAirportDataFlights(string& path)
 
     if (!currentFile.is_open())
     {
-        cout << "wrong path was given";
+        //cout << "wrong path was given";
     }
 
     // Skip the first line
@@ -188,7 +170,7 @@ void SingleAirport::updateAirportDataFlights(string& path)
             callsign = token;
             break;
         default:
-            cout << "switch case overflow" << endl;
+            //cout << "switch case overflow" << endl;
             break;
         }
 
@@ -205,13 +187,8 @@ void SingleAirport::updateAirportDataFlights(string& path)
 
 void System::getAllPaths(vector<string>& paths)
 {
-
-    cout << "in getAllPaths" << endl;
-
     fs::path workingDirPath = "/app";
     
-    cout << "current path is:" << (workingDirPath) << endl;
-
     for (const auto& entry : fs::recursive_directory_iterator(workingDirPath))
     {
         if (fs::is_directory(entry.path()))
@@ -307,7 +284,6 @@ void System::zipDirectory(const std::string& directoryPath, const std::string& z
         return;
     }
 
-    std::cout << "Successfully zipped the directory." << std::endl;
 }
 
 void System::addFileToZip(zip_t* archive, const std::filesystem::path& filePath, const std::filesystem::path& baseDirectory)
@@ -325,8 +301,6 @@ void System::addFileToZip(zip_t* archive, const std::filesystem::path& filePath,
     }
     else
     {
-        // std::string fileName = filePath.filename().string();
-        // if (fileName != "clean.sh" && fileName != "flightScanner.sh")
         zip_source_t *source = zip_source_file(archive, filePath.string().c_str(), 0, 0);
         if (source == nullptr)
         {

@@ -1,7 +1,7 @@
 #include "flightsServiceFuncs.h"
 
-int main() {
-    
+int main()
+{
     string namedPipeFsToDbService ="/tmp/flights_pipes/namedPipeFlightsServiceToDbService";
     string namedPipeDbToFsService = "/tmp/flights_pipes/namedPipeDbServiceToFlightsService";
 
@@ -9,7 +9,6 @@ int main() {
 
     int DataFileDescriptorFsToDb = open(namedPipeFsToDbService.c_str(), O_RDWR);
     int DataFileDescriptorDbToFs = open(namedPipeDbToFsService.c_str(), O_RDWR);
-
 
     runFlightsService(DataFileDescriptorFsToDb, DataFileDescriptorDbToFs);
 
