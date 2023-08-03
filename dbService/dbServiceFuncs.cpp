@@ -15,21 +15,9 @@ void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, boo
     sendDbStartedStrToFs(DataFileDescriptorDbToFs);
     getFsStatus(DataFileDescriptorFsToDb,fsSignal,codeNamesVec);
     
-   /*  bool dbJustRestarted;
-    if (fsSignal != NUM_SIGNAL_FS_STARTED)
-        dbJustRestarted = true; //at first got signal which indicates fs was running before, and sent data to dbService, so dbService also ran before
-    else
-        dbJustRestarted = false;
- */
     while (!gotShutDownOpcode) 
-    {  /*   
-        if (dbJustRestarted) //if there was input in pipe before restart - skip one iteration
-        {
-            dbJustRestarted = false;
-            //string errorMsg = "Error, please try again.\n";
-            //writeOutputToFlightsService(DataFileDescriptorDbToFs, errorMsg);
-        }
-        else */ if (choice == NUM_SIGNAL_FS_STARTED)
+    {  
+        if (choice == NUM_SIGNAL_FS_STARTED)
         {
             string dbKeepsRunningMsg = "dbService keeps running and waiting for requests.\n";
             writeOutputToFlightsService(DataFileDescriptorDbToFs, dbKeepsRunningMsg);
@@ -49,9 +37,11 @@ void runDbService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs, boo
             {
                 bool dbLoaded = airports.isDataBaseLoaded();
                 if ((choice >= 2 && choice <= 5) && dbLoaded == false) //there is no data available to execute choice 2/3/4/5
-                {
+                {                  
                     outputStr = "Currently there is not any data in the program. Can not run choice number " + to_string(choice) + ".\n";
                     outputStr += "In order to get data, please choose option 1 and provide the desired ICAO codes.\n";
+                    if (codeNamesVec.empty())
+                        outputStr = "You did not provide codes. please try again.\n";
                 }
                 else
                     outputStr = getDataForParent(choice, airports, codeNamesVec);
@@ -113,16 +103,34 @@ string getDataForParent(int choice,System& airports, vector<string> codeNames)
         {
            fetchedAll = fetchAirportsData(airports, codeNames);
            if (fetchedAll)
-                result = "The system fetched all data.\n\n";
+                result = "dbService says: The system fetched all data.\n";
             else 
-                result = "The system could not fetch all data. You can try again with different ICAO codes.\n\n";
+                result = "dbService says: The system could not fetch all data. You can try again with different ICAO codes.\n";
+            
+            if (codeNames.empty())
+                result = "You did not provide codes. please try again.\n";
         }
         break;
-        case 2: result = printAirportsArv(airports, codeNames);
+        case 2:
+        {
+            result = printAirportsArv(airports, codeNames);
+            if (codeNames.empty())
+                result = "You did not provide codes. please try again.\n";
+        }
         break;
-        case 3: result = printAirportSchedule(airports, codeNames);
+        case 3:
+        {
+            result = printAirportSchedule(airports, codeNames);
+            if (codeNames.empty())
+                result = "You did not provide codes. please try again.\n";
+        }
         break;
-        case 4: result = printAllAircraftsFlights(airports, codeNames);
+        case 4:
+        {
+            result = printAllAircraftsFlights(airports, codeNames);
+             if (codeNames.empty())
+                result = "You did not provide codes. please try again.\n";
+        }
         break;
         case 5:  result = zipDataBase(airports);
         break;

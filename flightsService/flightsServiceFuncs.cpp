@@ -8,7 +8,7 @@ void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs
     bool gotShutDownOpcode = false;
     int vectorSize, choice = 0;
 
-    cout << "flightsServise just started. Waiting for dbService." << endl;
+    cout << endl << endl << "flightsServise just started. Waiting for dbService." << endl;
     sendFsStartedSignalToDb(DataFileDescriptorFsToDb);
     getDbStatus(DataFileDescriptorDbToFs);
 
@@ -30,7 +30,8 @@ void runFlightsService(int DataFileDescriptorFsToDb,int DataFileDescriptorDbToFs
         if (choice == 1)
         {
             cout << "Sent request to dbService. Waiting for response." << endl;
-            cout << "It might take some time. Please be patient." << endl << endl;
+            cout << "It might take some time. Please be patient." << endl;
+            cout << "Don't press anything till you get a message response from dbService." << endl << endl;
         }      
         readOutputFromDbAndPrint(DataFileDescriptorDbToFs);
     }
