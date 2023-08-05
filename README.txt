@@ -1,10 +1,10 @@
 Exercise 3 – Flight Scanner Microservices
 
-Names and Ids
+Names
 
-Lahav Rabinovitz: 209028349
-Ben Hanover: 206564981
-Meir Zoref: 305643231
+Lahav Rabinovitz
+Ben Hanover
+Meir Zoref
 
 Instructions:
 1) save the bash script on your OS:
